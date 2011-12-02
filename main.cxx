@@ -1,34 +1,25 @@
 
 #include <iostream>
 
-
-#include "itkMesh.h"
+#include "itkPointSet.h"
 #include "itkQuadEdgeMesh.h"
 #include "itkQuadEdgeMeshTraits.h"
-#include "itkPointSet.h"
+#include "itkQuadEdgeMeshPolygonCell.h"
+
 #include "itkVTKPolyDataWriter.h"
 #include "itkVTKPolyDataReader.h"
 
 
+typedef double			 PixelType;
+const		unsigned int Dimension = 3;
+typedef itk::QuadEdgeMesh< PixelType, Dimension>	QEMeshType;
+
+template< class TMesh >
+std::vector< typename TMesh::PointType > GeneratePointCoordinates( const unsigned int& iN );
+template< class TMesh >
+void CreateSquareTriangularMesh( typename TMesh::Pointer mesh );
 template< class TPointType >
-double orientation ( TPointType p , TPointType q , TPointType r )
-{
-	
-	typedef typename TPointType::VectorType VectorType;
-	
-	VectorType pq;
-	pq[0] = q[0] - p[0] ;
-	pq[1] = q[1] - p[1] ;
-
-	VectorType pr;
-	pr[0] = r[0] - p[0] ;
-	pr[1] = r[1] - p[1] ;
-	
-	double scalar = pq[0] * pr[0] - pq[1] * pr[1] ; 
-	
-	return scalar;
-}
-
+double orientation ( TPointType p , TPointType q , TPointType r );
 
 int main(int argc, char * argv[] )
 {
@@ -36,31 +27,24 @@ int main(int argc, char * argv[] )
 	//-----------------------------------
 	// Typedef
 	//-----------------------------------
-	
-	typedef double			 PixelType;
-	const		unsigned int Dimension = 3;
-	
-	typedef itk::QuadEdgeMeshTraits< PixelType, Dimension, PixelType, PixelType, PixelType, PixelType > QEMTraits;
-	typedef itk::QuadEdgeMesh< PixelType, Dimension, QEMTraits >																				QEMeshType;
 
-	typedef QEMeshType::PointType					PointType;
-	typedef QEMeshType::PointIdentifier		PointId;
-	typedef QEMeshType::VectorType				VectorType;
-	typedef QEMeshType::PointIdList				PointIdList;
+	typedef QEMeshType::PointType				PointType;
+	typedef QEMeshType::CellType				CellType;
+	typedef QEMeshType::PointIdentifier	PointIdentifier;
+	typedef QEMeshType::CellIdentifier	CellIdentifier;
+	typedef QEMeshType::PointsContainer	PointsContainer;
+	typedef QEMeshType::CellsContainer	CellsContainer;
+	typedef QEMeshType::PointIdList			PointIdList;
+
+	typedef PointType::VectorType						VectorType;
+	typedef CellType::PointIdIterator				PointIdIterator;
+	typedef CellType::PointIdConstIterator	PointIdConstIterator;
 	
-	typedef QEMeshType::CellType												CellType;					// abstract
-	typedef QEMeshType::CellIdentifier									CellId;
-  typedef CellType::CellAutoPointer										CellAutoPointer;	// abstract	
-	typedef QEMeshType::CellsContainerIterator					CellsContainerIteratorType;
+	typedef CellType::CellAutoPointer						CellAutoPointer;	
+	typedef QEMeshType::CellsContainerIterator	CellsContainerIteratorType;
   
-	typedef QEMeshType::PixelType												RealType;
-	typedef QEMeshType::CellTraits											CellTraits;
-	typedef itk::CellInterface< RealType, CellTraits >	CellInterfaceType;
-  typedef itk::TriangleCell< CellInterfaceType >			TriangleCellType;
-	typedef TriangleCellType::PointIdIterator						PointIdIterator;
-	
-	typedef itk::VTKPolyDataWriter< QEMeshType >				MeshWriterType;
-	typedef itk::VTKPolyDataReader< QEMeshType >				MeshReaderType;
+	typedef itk::VTKPolyDataWriter< QEMeshType > MeshWriterType;
+	typedef itk::VTKPolyDataReader< QEMeshType > MeshReaderType;
 
 	
 	//-----------------------------------
@@ -68,63 +52,51 @@ int main(int argc, char * argv[] )
 	//-----------------------------------
 	
 	QEMeshType::Pointer myMesh = QEMeshType::New();
+	
+	CreateSquareTriangularMesh<QEMeshType	> (myMesh);
+	
+  std::cout<<"\nNo. of Cells : "<<myMesh->GetNumberOfCells()
+					 <<"\nNo. of Edges : "<<myMesh->GetNumberOfEdges()
+					 <<"\nNo. of Faces : "<<myMesh->GetNumberOfFaces()
+					 <<"\nNo. of Points : "<<myMesh->GetNumberOfPoints()<<"\n\n";
+	
+	
 	MeshWriterType::Pointer writer = MeshWriterType::New();
-	MeshReaderType::Pointer reader = MeshReaderType::New();
-	
-	PointType localPoint;
-	PointId pId;
-	PointIdList IdList (3);
-
-	// SetMeshPoint
-	for (unsigned int i = 0; i<9; i++) {
-		pId = i;
 		
-		localPoint[0] = (i % 3) * 10 ;
-		localPoint[1] = floor( i / 3 ) * 10;
-		
-		myMesh->SetPoint( pId, localPoint );
-	}
-	
-	// SetMesh Edge & Face
-	myMesh->AddFaceTriangle(0, 1, 4);
-	myMesh->AddFaceTriangle(4, 3, 0);
-	myMesh->AddFaceTriangle(1, 2, 5);
-	myMesh->AddFaceTriangle(5, 4, 1);
-	myMesh->AddFaceTriangle(3, 4, 7);
-	myMesh->AddFaceTriangle(7, 6, 3);
-	myMesh->AddFaceTriangle(4, 5, 8);
-	myMesh->AddFaceTriangle(8, 7, 4);
-	
 	writer->SetFileName("./myMesh.vtk");
 	writer->SetInput(myMesh);
 	writer->Update();
-	
-	reader->SetFileName("./myMesh.vtk");
-	reader->Update();
-	myMesh = reader->GetOutput();
-	
+
 	// Test point
-	PointType seekedPoint;
-	seekedPoint[0] = 15;
-	seekedPoint[1] = 18;
+	PointType seekPoint;
+	seekPoint[0] = 3.5;
+	seekPoint[1] = 2.25;
 	
 	//-----------------------------------
-	// Walk a Triangulation
-	// algorithm
-	// 
-	//	Get the first cell ID in T
-	//	While the seeked point is not inside T
+	// WALK IN A TRIANGULATION ALGORITHM 
+	//
+	// INPUT = CellIdentifier
+	// OUTPUT = CellIdentifier
+	//
+	//	TEMPORARY INITIALISATION = Get cell t the first cell ID in T  ||   Get cell t the last cell ID processed
+	//
+	//	Test if p inside t
+	//	While seeked point p is not inside cell t
 	//	do
-	//		Go through all the vertices of T
-	//		Calculate the barycentre P
-	//		Go through all the edge ER of the cell
+	//		Calculate point q the barycentre of cell t
+	//		Go through all the edge e-r of the cell t
 	//		Until
-	//			orientation(PQR) && orientation(PQE) >=0
-	//		Get the ID of the cell that share the edge ER
-	//		Save the ID in T
+	//			orientation(pqr) >=0 && orientation(pqe) >=0
+	//		If e-r is not border edge
+	//			Find cell c that contain the edge e-r and is not cell t
+	//			Save c in t
+	//			Test if p inside t
+	//		else
+	//			t = -1
+	//			break out while
 	//	end while
-	//		
-	//-----------------------------------
+	//	return t	
+	
 	
 	// Initialisation
 	bool win			 = false, 
@@ -135,104 +107,211 @@ int main(int argc, char * argv[] )
 	VectorType directionVector, edgeVector;
 	
 	PointType barycentre;
-	PointType mpa, mpb,	mpc, epa, epb;
-	PointId		e1,	e2;
+	PointType cellPoint, edgePointA, edgePointB;
+	PointIdentifier	edgePointIdA,	edgePointIdB;
 	
-	CellAutoPointer  cellIterator;  // Get the first CellId of the mesh
-	CellsContainerIteratorType CellIterator = myMesh->GetCells()->Begin();
+	CellAutoPointer myCellPointer;  
+	CellsContainer  *myCellsContainer = myMesh->GetCells();
+	CellsContainerIteratorType myCellIterator = myCellsContainer->Begin();
+	CellIdentifier myCellIndex = myCellIterator.Index();
 	
+	// Test if the point is in the cell
+	// win = isInside(myCellIndex , seekPoint)
+	
+	// Do until we found the cell or we reach a border
 	while( !win )  {
 		
-		// Bertrand's InCirclePredicateFunctor
-		// ERR can be in circle but not in triangle...
-		// win = IsInside( TriangleId t, PointId p ) 
+		barycentre[0] = 0;
+		barycentre[1] = 0;
 		
-		if (!win ) {
-	 	 
-		
-			if( myMesh->GetCell( CellIterator.Index(), cellIterator ) )   // Test if the selected Cell id exist
-			{
-				
-				// TODO => Automation regardless the Cell type
-				// WARNING => Type cell is Polygone and not Triangle ??
-				if( cellIterator->GetType() == 2 )													// Test type of Cell (triangle, squarre, polygone ... )
-				{ 
-					
-					// Calculate the barycentre of the current cell
-					// TODO => Upgrade for any type of cell
-					PointIdIterator pointIdIterator = CellIterator.Value()->PointIdsBegin();
-					myMesh->GetPoint( *pointIdIterator, &mpa );
-					pointIdIterator++;
-					myMesh->GetPoint( *pointIdIterator, &mpb );
-					pointIdIterator++;
-					myMesh->GetPoint( *pointIdIterator, &mpc );
-					
-					barycentre[0] = ( mpa[0] + mpb[0] + mpc[0] ) / 3;
-					barycentre[1] = ( mpa[1] + mpb[1] + mpc[1] ) / 3;
-
+		// Test if the selected Cell id exist
+		// If exist save the Cell pointer 
+		if( myMesh->GetCell( myCellIndex, myCellPointer ) ) 
+		{
+			// Test the type of Cell 0=point 1=line 2=triangle 3=square 4=polygone
+			// For now it should be 4, should work also with 3 and 2
+			// Shouldnt work with 0 and 1
+			if( myCellPointer->GetType() == 4 )													
+			{ 
+				// Calculate the barycentre of the current cell					
+				PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
+				while (pointIdIterator != myCellPointer->PointIdsEnd()) {
+					myMesh->GetPoint( *pointIdIterator, &cellPoint );
+					barycentre[0] = barycentre[0] + cellPoint[0];
+					barycentre[1] = barycentre[0] + cellPoint[1];
 				}
-				else
-				{
-					std::cout<<" err - this is not a triangle \n";
-				}
+				barycentre[0] = barycentre[0] / myCellPointer->GetNumberOfPoints();
+				barycentre[1] = barycentre[1] / myCellPointer->GetNumberOfPoints();
 			}
 			else
 			{
-				std::cout<<" err - the cell ID was not found in the container \n";
+				std::cout<<" err - not the type of cell expected \n";
 			}
-			
-			// Determined the Cell edge that cross the direction we need to go
-			// Get the id of the first point in the cell
-			PointIdIterator pointIdIterator = CellIterator.Value()->PointIdsBegin();
-			myMesh->GetPoint( *pointIdIterator, &epa );
-			pointIdIterator++;
-
-			while ( !edgeFound )  {
-
-				// Get the id of the next point in the cell
-				myMesh->GetPoint( *pointIdIterator, &epb );
-				
-				// Calculate the orientation test
-				// if the 2 scalar product of the direction vector given by the barycentre and the seekedPoint
-				// and the 2 vectors given by the barycentre and 2 vertices of an edge of the cell
-				// are positive, then the edge given by the 2 current vertices is the edge we need to cross
-				scalarA = orientation(barycentre, seekedPoint, epa) ;
-				scalarB = orientation(barycentre, seekedPoint, epb) ;
-				
-				if (scalarA >= 0 && scalarB >= 0) {
-					// We stock the 2 vertices id
-					e2 = *pointIdIterator;
-					e1 = *--pointIdIterator;
-					
-					// We set the flag to true
-					edgeFound = true;
-				}
-				else 
-				{
-					// if the edge is not found
-					// we go to the next edge
-					epa = epb;
-					if (pointIdIterator != CellIterator.Value()->PointIdsEnd() ) { 
-						pointIdIterator++;
-					}
-					else {
-						// if we arrived at the end of the vertices list, we go back at begin
-						pointIdIterator = CellIterator.Value()->PointIdsBegin();
-					}
-				}
-									
-			}
-	 
-			// using the saved id of the selected vertices => e1 and e2
-			// and the current cell id => CellIterator.Index() & CellIterator.Value()
-			// we go to the cell that contain this edge and that is not the current cell we are.
-			// Use the CellIterator.GoTo() ?
-			
 		}
+		else
+		{
+			std::cout<<" err - the cell ID was not found \n";
+		}
+		
+		// Determined the Edge of the Cell that cross the direction we need to go
+		// Get the id of the first point in the cell
+		PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
+		myMesh->GetPoint( *pointIdIterator, &edgePointB );
+		
+		// Loop on all point of the cell two by two and test the edge
+		// TODO => Check not infinity loop
+		do {
+			edgePointA = edgePointB;
+			if (pointIdIterator = myCellPointer->PointIdsEnd() ) {
+				pointIdIterator = myCellPointer->PointIdsBegin();	
+			}
+			else {
+				pointIdIterator++;
+			}
+			myMesh->GetPoint( *pointIdIterator, &edgePointB );
+			
+			scalarA = orientation(barycentre, seekPoint, edgePointA) ;
+			scalarB = orientation(barycentre, seekPoint, edgePointB) ;
+			
+			if (scalarA >= 0 && scalarB >= 0) {
+				edgePointIdB = *pointIdIterator;
+				edgePointIdA = *--pointIdIterator;
+				edgeFound = true;
+			}
+		}
+		while ( !edgeFound );
+		
+		// TODO
+		
+		// we have the id and pointer of the selected vertices => edgePointIdA | *edgePointA and edgePointIdB | *edgePointB
+		// we have the id and pointer of the current cell => myCellIndex | myCellPointer
+		
+		// if edge e1 - e2 is a border edge then p outside mesh
+		//		Break out While and return -1
+		// else
+		//		Found the next cell
+		//		win = isInside(myCellIndex , seekPoint)
+		// endif
+			
 	}
-
 	
+	// TODO => return cell ID
   return EXIT_SUCCESS;
 
 }
 
+template< class TPointType >
+double orientation ( TPointType p , TPointType q , TPointType r )
+{
+	
+	typedef typename TPointType::VectorType VectorType;
+	
+	VectorType pq;
+	pq[0] = q[0] - p[0] ;
+	pq[1] = q[1] - p[1] ;
+	
+	VectorType pr;
+	pr[0] = r[0] - p[0] ;
+	pr[1] = r[1] - p[1] ;
+	
+	double scalar = pq[0] * pr[0] - pq[1] * pr[1] ; 
+	
+	return scalar;
+}
+
+//////////////////////////////////////
+// Test Mesh Generation Function
+
+template< class TMesh >
+std::vector< typename TMesh::PointType >
+GeneratePointCoordinates( const unsigned int& iN )
+{
+  typedef typename TMesh::PointType        PointType;
+  typedef typename PointType::CoordRepType CoordRepType;
+  std::vector< PointType > oPt( iN * iN );
+	
+  for( unsigned int i = 0; i < iN; i++ )
+  {
+    for( unsigned int j = 0; j < iN; j++ )
+    {
+      oPt[ i * iN + j ][0] = static_cast< CoordRepType >( j );
+      oPt[ i * iN + j ][1] = static_cast< CoordRepType >( i );
+      oPt[ i * iN + j ][2] = static_cast< CoordRepType >( 0. );
+    }
+  }
+	
+  return oPt;
+}
+
+template< class TMesh >
+void CreateSquareTriangularMesh( typename TMesh::Pointer mesh )
+{
+  typedef TMesh                         MeshType;
+  typedef typename MeshType::CellType   CellType;
+	
+  typedef itk::QuadEdgeMeshPolygonCell< CellType > QEPolygonCellType;
+	
+  if( mesh->GetNumberOfPoints( ) )
+	{
+    mesh->Clear( );
+    mesh->ClearFreePointAndCellIndexesLists();
+	}
+	
+  /////////////////////////////////////////////////////////////
+  int expectedNumPts = 25;
+  int expectedNumCells = 32;
+  int simpleSquareCells[96] =
+  {  0,  1,  6,
+		 0,  6,  5,
+		 1,  2,  7,
+		 1,  7,  6,
+		 2,  3,  8,
+		 2,  8,  7,
+		 3,  4,  9,
+		 3,  9,  8,
+		 5,  6, 11,
+		 5, 11, 10,
+		 6,  7, 12,
+		 6, 12, 11,
+		 7,  8, 13,
+		 7, 13, 12,
+		 8,  9, 14,
+		 8, 14, 13,
+    10, 11, 16,
+    10, 16, 15,
+    11, 12, 17,
+    11, 17, 16,
+    12, 13, 18,
+    12, 18, 17,
+    13, 14, 19,
+    13, 19, 18,
+    15, 16, 21,
+    15, 21, 20,
+    16, 17, 22,
+    16, 22, 21,
+    17, 18, 23,
+    17, 23, 22,
+    18, 19, 24,
+    18, 24, 23 };
+	
+  typedef typename TMesh::PointType PointType;
+  std::vector< PointType > pts = GeneratePointCoordinates< TMesh >( 5 );
+	
+  for(int i=0; i<expectedNumPts; i++)
+	{
+    mesh->SetPoint( i, pts[i] );
+	}
+	
+  typename CellType::CellAutoPointer cellpointer;
+  QEPolygonCellType *poly;
+	
+  for(int i=0; i<expectedNumCells; i++)
+	{
+    poly = new QEPolygonCellType( 3 );
+    cellpointer.TakeOwnership( poly );
+    cellpointer->SetPointId( 0, simpleSquareCells[3*i] );
+    cellpointer->SetPointId( 1, simpleSquareCells[3*i+1] );
+    cellpointer->SetPointId( 2, simpleSquareCells[3*i+2] );
+    mesh->SetCell( i, cellpointer );
+	}
+}

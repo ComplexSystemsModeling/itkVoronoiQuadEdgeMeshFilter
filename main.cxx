@@ -28,23 +28,24 @@ int main(int argc, char * argv[] )
 	// Typedef
 	//-----------------------------------
 
-	typedef QEMeshType::PointType				PointType;
-	typedef QEMeshType::CellType				CellType;
+	typedef QEMeshType::PointType	PointType;
+	typedef QEMeshType::CellType	CellType;
 	typedef QEMeshType::PointIdentifier	PointIdentifier;
 	typedef QEMeshType::CellIdentifier	CellIdentifier;
 	typedef QEMeshType::PointsContainer	PointsContainer;
 	typedef QEMeshType::CellsContainer	CellsContainer;
-	typedef QEMeshType::PointIdList			PointIdList;
+	typedef QEMeshType::PointIdList	PointIdList;
+	typedef QEMeshType::QEType	QEdgeType;
 
-	typedef PointType::VectorType						VectorType;
-	typedef CellType::PointIdIterator				PointIdIterator;
+	typedef PointType::VectorType	VectorType;
+	typedef CellType::PointIdIterator	PointIdIterator;
 	typedef CellType::PointIdConstIterator	PointIdConstIterator;
 	
-	typedef CellType::CellAutoPointer						CellAutoPointer;	
+	typedef CellType::CellAutoPointer	CellAutoPointer;	
 	typedef QEMeshType::CellsContainerIterator	CellsContainerIteratorType;
   
-	typedef itk::VTKPolyDataWriter< QEMeshType > MeshWriterType;
-	typedef itk::VTKPolyDataReader< QEMeshType > MeshReaderType;
+	typedef itk::VTKPolyDataWriter< QEMeshType >	MeshWriterType;
+	typedef itk::VTKPolyDataReader< QEMeshType >	MeshReaderType;
 
 	
 	//-----------------------------------
@@ -56,9 +57,9 @@ int main(int argc, char * argv[] )
 	CreateSquareTriangularMesh<QEMeshType	> (myMesh);
 	
   std::cout<<"\nNo. of Cells : "<<myMesh->GetNumberOfCells()
-					 <<"\nNo. of Edges : "<<myMesh->GetNumberOfEdges()
-					 <<"\nNo. of Faces : "<<myMesh->GetNumberOfFaces()
-					 <<"\nNo. of Points : "<<myMesh->GetNumberOfPoints()<<"\n\n";
+		<<"\nNo. of Edges : "<<myMesh->GetNumberOfEdges()
+		<<"\nNo. of Faces : "<<myMesh->GetNumberOfFaces()
+		<<"\nNo. of Points : "<<myMesh->GetNumberOfPoints()<<"\n\n";
 	
 	
 	MeshWriterType::Pointer writer = MeshWriterType::New();
@@ -71,6 +72,8 @@ int main(int argc, char * argv[] )
 	PointType seekPoint;
 	seekPoint[0] = 3.5;
 	seekPoint[1] = 2.25;
+	
+	std::cout<<" seek point : "<<seekPoint[0]<<" "<<seekPoint[1]<<"\n";
 	
 	//-----------------------------------
 	// WALK IN A TRIANGULATION ALGORITHM 
@@ -114,6 +117,7 @@ int main(int argc, char * argv[] )
 	CellsContainer  *myCellsContainer = myMesh->GetCells();
 	CellsContainerIteratorType myCellIterator = myCellsContainer->Begin();
 	CellIdentifier myCellIndex = myCellIterator.Index();
+	CellIdentifier myNewCellIndex;
 	
 	// Test if the point is in the cell
 	// win = isInside(myCellIndex , seekPoint)
@@ -131,7 +135,7 @@ int main(int argc, char * argv[] )
 			// Test the type of Cell 0=point 1=line 2=triangle 3=square 4=polygone
 			// For now it should be 4, should work also with 3 and 2
 			// Shouldnt work with 0 and 1
-			if( myCellPointer->GetType() == 4 )													
+			if( myCellPointer->GetType() == 4)													
 			{ 
 				// Calculate the barycentre of the current cell					
 				PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
@@ -139,9 +143,11 @@ int main(int argc, char * argv[] )
 					myMesh->GetPoint( *pointIdIterator, &cellPoint );
 					barycentre[0] = barycentre[0] + cellPoint[0];
 					barycentre[1] = barycentre[0] + cellPoint[1];
+					pointIdIterator++;
 				}
 				barycentre[0] = barycentre[0] / myCellPointer->GetNumberOfPoints();
 				barycentre[1] = barycentre[1] / myCellPointer->GetNumberOfPoints();
+				
 			}
 			else
 			{
@@ -153,6 +159,8 @@ int main(int argc, char * argv[] )
 			std::cout<<" err - the cell ID was not found \n";
 		}
 		
+
+	
 		// Determined the Edge of the Cell that cross the direction we need to go
 		// Get the id of the first point in the cell
 		PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
@@ -162,16 +170,11 @@ int main(int argc, char * argv[] )
 		// TODO => Check not infinity loop
 		do {
 			edgePointA = edgePointB;
-			if (pointIdIterator = myCellPointer->PointIdsEnd() ) {
-				pointIdIterator = myCellPointer->PointIdsBegin();	
-			}
-			else {
-				pointIdIterator++;
-			}
+			pointIdIterator++;
 			myMesh->GetPoint( *pointIdIterator, &edgePointB );
 			
-			scalarA = orientation(barycentre, seekPoint, edgePointA) ;
-			scalarB = orientation(barycentre, seekPoint, edgePointB) ;
+			scalarA = orientation(barycentre, seekPoint, edgePointA) ; // TODO => Exact discrete geometry ?
+			scalarB = orientation(barycentre, seekPoint, edgePointB) ; // TODO => Exact discrete geometry ?
 			
 			if (scalarA >= 0 && scalarB >= 0) {
 				edgePointIdB = *pointIdIterator;
@@ -180,22 +183,41 @@ int main(int argc, char * argv[] )
 			}
 		}
 		while ( !edgeFound );
-		
-		// TODO
-		
+				
 		// we have the id and pointer of the selected vertices => edgePointIdA | *edgePointA and edgePointIdB | *edgePointB
 		// we have the id and pointer of the current cell => myCellIndex | myCellPointer
 		
 		// if edge e1 - e2 is a border edge then p outside mesh
-		//		Break out While and return -1
-		// else
-		//		Found the next cell
-		//		win = isInside(myCellIndex , seekPoint)
-		// endif
+		if (myMesh->FindEdge( edgePointIdA, edgePointIdB )->IsAtBorder()) {
+			myNewCellIndex = -1;
+			break;
+		}
+		else { 
+			QEdgeType::DualOriginRefType leftCell = myMesh->FindEdge( edgePointIdA, edgePointIdB )->GetLeft();
+			QEdgeType::DualOriginRefType rightCell = myMesh->FindEdge( edgePointIdA, edgePointIdB )->GetRight();
+
+			// Found the next cell
+			if (leftCell == myCellIndex) {
+				myNewCellIndex = rightCell;
+				myMesh->GetCell( myNewCellIndex, myCellPointer);
+			}
+			else {
+				myNewCellIndex = leftCell;
+				myMesh->GetCell( myNewCellIndex, myCellPointer);
+			}
+
+			std::cout<<"left id = "<<leftCell<<"\n";	
+			std::cout<<"right id = "<<rightCell<<"\n";	
+			std::cout<<"current id = "<<myCellIndex<<"\n";	
+			std::cout<<"new id = "<<myNewCellIndex<<"\n";
 			
+			// If Point inside
+			// win = isInside(myCellIndex , seekPoint)
+		}
 	}
 	
 	// TODO => return cell ID
+	// myNewCellIndex
   return EXIT_SUCCESS;
 
 }
@@ -261,22 +283,22 @@ void CreateSquareTriangularMesh( typename TMesh::Pointer mesh )
   int expectedNumPts = 25;
   int expectedNumCells = 32;
   int simpleSquareCells[96] =
-  {  0,  1,  6,
-		 0,  6,  5,
-		 1,  2,  7,
-		 1,  7,  6,
-		 2,  3,  8,
-		 2,  8,  7,
-		 3,  4,  9,
-		 3,  9,  8,
-		 5,  6, 11,
-		 5, 11, 10,
-		 6,  7, 12,
-		 6, 12, 11,
-		 7,  8, 13,
-		 7, 13, 12,
-		 8,  9, 14,
-		 8, 14, 13,
+  { 0,  1,  6,
+		0,  6,  5,
+		1,  2,  7,
+		1,  7,  6,
+		2,  3,  8,
+		2,  8,  7,
+		3,  4,  9,
+		3,  9,  8,
+		5,  6, 11,
+		5, 11, 10,
+		6,  7, 12,
+		6, 12, 11,
+		7,  8, 13,
+		7, 13, 12,
+		8,  9, 14,
+		8, 14, 13,
     10, 11, 16,
     10, 16, 15,
     11, 12, 17,

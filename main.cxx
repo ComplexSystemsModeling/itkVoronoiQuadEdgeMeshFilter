@@ -1,15 +1,19 @@
 
-#include <iostream>
-
 #include "itkPointSet.h"
 #include "itkQuadEdgeMesh.h"
 #include "itkQuadEdgeMeshTraits.h"
 #include "itkQuadEdgeMeshPolygonCell.h"
 
 #include "itkVTKPolyDataWriter.h"
+#include <iostream>
 
-typedef	double				PixelType;
-const		unsigned int	Dimension = 3;
+// TODO :
+// => Inside Triangle Test
+// => Validation Test
+// => Functor encapsulation
+
+typedef	double	PixelType;
+const	unsigned int	Dimension = 3;
 typedef itk::QuadEdgeMesh< PixelType, Dimension >	QEMeshType;
 
 template< class TMesh >
@@ -26,27 +30,26 @@ int main(int argc, char * argv[] )
 	//-----------------------------------
 	// Typedef
 
-	typedef QEMeshType::PointType				PointType;
-	typedef QEMeshType::CellType				CellType;
+	typedef QEMeshType::PointType	PointType;
+	typedef QEMeshType::CellType	CellType;
 	typedef QEMeshType::PointIdentifier	PointIdentifier;
 	typedef QEMeshType::CellIdentifier	CellIdentifier;
 	typedef QEMeshType::PointsContainer	PointsContainer;
 	typedef QEMeshType::CellsContainer	CellsContainer;
-	typedef QEMeshType::PointIdList			PointIdList;
-	typedef QEMeshType::QEType					QEdgeType;
+	typedef QEMeshType::PointIdList	PointIdList;
+	typedef QEMeshType::QEType	QEdgeType;
 
-	typedef PointType::VectorType						VectorType;
-	typedef CellType::PointIdIterator				PointIdIterator;
+	typedef PointType::VectorType	VectorType;
+	typedef CellType::PointIdIterator	PointIdIterator;
 	typedef CellType::PointIdConstIterator	PointIdConstIterator;
 	
-	typedef CellType::CellAutoPointer						CellAutoPointer;	
+	typedef CellType::CellAutoPointer	CellAutoPointer;	
 	typedef QEMeshType::CellsContainerIterator	CellsContainerIteratorType;
   
 	typedef itk::VTKPolyDataWriter< QEMeshType >	MeshWriterType;
 	
 	//-----------------------------------
-	// Test Mesh 
-	//-----------------------------------
+	// Test Mesh declaration
 	
 	QEMeshType::Pointer myMesh = QEMeshType::New();
 	CreateSquareTriangularMesh< QEMeshType >	( myMesh );
@@ -76,8 +79,9 @@ int main(int argc, char * argv[] )
 	// INPUT = CellIdentifier
 	// OUTPUT = CellIdentifier
 	//
-	//	TEMPORARY INITIALISATION = Get cell t the first cell ID in T  ||   
-	//														 Get cell t the last cell ID processed
+	// TEMPORARY INITIALISATION 
+	// Get cell t the first cell ID in T  ||   
+	// Get cell t the last cell ID processed
 	//
 	//	Test if p inside t
 	//	While seeked point p is not inside cell t
@@ -95,10 +99,10 @@ int main(int argc, char * argv[] )
 	//			break out while
 	//	end while
 	//	return t	
-	
+	//-----------------------------------
 	
 	// Initialisation
-	bool win				= false, 
+	bool win	= false, 
 	     edgeFound	= false;
 	double scalarA, 
 	       scalarB;
@@ -106,8 +110,8 @@ int main(int argc, char * argv[] )
 	VectorType directionVector, edgeVector;
 	
 	PointType	barycentre;
-	PointType	cellPoint,	edgePointA,	edgePointB;
-	PointIdentifier	edgePointIdA,	edgePointIdB;
+	PointType	cellPoint, edgePointA, edgePointB;
+	PointIdentifier	edgePointIdA, edgePointIdB;
 	
 	CellAutoPointer myCellPointer;  
 	CellsContainer  *myCellsContainer = myMesh->GetCells();
@@ -143,7 +147,6 @@ int main(int argc, char * argv[] )
 				}
 				barycentre[0] = barycentre[0] / myCellPointer->GetNumberOfPoints();
 				barycentre[1] = barycentre[1] / myCellPointer->GetNumberOfPoints();
-				
 			}
 			else
 			{
@@ -154,16 +157,14 @@ int main(int argc, char * argv[] )
 		{
 			std::cout<<" err - the cell ID was not found \n";
 		}
-		
 
-	
 		// Determined the Edge of the Cell that cross the direction we need to go
 		// Get the id of the first point in the cell
 		PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
 		myMesh->GetPoint( *pointIdIterator, &edgePointB );
 		
 		// Loop on all point of the cell two by two and test the edge
-		// TODO => Check not infinity loop
+		// TODO => Check not infinity loop in worst case
 		do {
 			edgePointA = edgePointB;
 			pointIdIterator++;
@@ -180,7 +181,8 @@ int main(int argc, char * argv[] )
 		}
 		while ( !edgeFound );
 				
-		// we have the id and pointer of the selected vertices => edgePointIdA | *edgePointA and edgePointIdB | *edgePointB
+		// we have the id and pointer of the selected vertices 
+		// => edgePointIdA | *edgePointA and edgePointIdB | *edgePointB
 		// we have the id and pointer of the current cell => myCellIndex | myCellPointer
 		
 		// if edge e1 - e2 is a border edge then p outside mesh
@@ -212,11 +214,14 @@ int main(int argc, char * argv[] )
 		}
 	}
 	
-	// TODO => return cell ID
-	// myNewCellIndex
+	// TODO => return cell ID or -1 if outside mesh
+	// return myNewCellIndex;
   return EXIT_SUCCESS;
 
 }
+
+//////////////////////////////////////
+// Test Orientation => TODO exact discrete geometry ?
 
 template< class TPointType >
 double orientation ( TPointType p , TPointType q , TPointType r )
@@ -269,8 +274,7 @@ void CreateSquareTriangularMesh( typename TMesh::Pointer mesh )
 	
   typedef itk::QuadEdgeMeshPolygonCell< CellType > QEPolygonCellType;
 	
-  if( mesh->GetNumberOfPoints( ) )
-	{
+  if( mesh->GetNumberOfPoints( ) ) {
     mesh->Clear( );
     mesh->ClearFreePointAndCellIndexesLists();
 	}
@@ -279,53 +283,51 @@ void CreateSquareTriangularMesh( typename TMesh::Pointer mesh )
   int expectedNumPts = 25;
   int expectedNumCells = 32;
   int simpleSquareCells[96] =
-  { 0,  1,  6,
+  { 0,  1,  6, 
 		0,  6,  5,
-		1,  2,  7,
+		1,  2,  7, 
 		1,  7,  6,
-		2,  3,  8,
+		2,  3,  8, 
 		2,  8,  7,
-		3,  4,  9,
+		3,  4,  9, 
 		3,  9,  8,
-		5,  6, 11,
+		5,  6, 11, 
 		5, 11, 10,
-		6,  7, 12,
+		6,  7, 12, 
 		6, 12, 11,
-		7,  8, 13,
+		7,  8, 13, 
 		7, 13, 12,
-		8,  9, 14,
+		8,  9, 14, 
 		8, 14, 13,
-    10, 11, 16,
-    10, 16, 15,
-    11, 12, 17,
-    11, 17, 16,
-    12, 13, 18,
-    12, 18, 17,
-    13, 14, 19,
-    13, 19, 18,
-    15, 16, 21,
-    15, 21, 20,
-    16, 17, 22,
-    16, 22, 21,
-    17, 18, 23,
-    17, 23, 22,
-    18, 19, 24,
-    18, 24, 23 };
+    10, 11, 16, 
+		10, 16, 15,
+    11, 12, 17, 
+		11, 17, 16,
+    12, 13, 18, 
+		12, 18, 17,
+    13, 14, 19, 
+		13, 19, 18,
+    15, 16, 21, 
+		15, 21, 20,
+    16, 17, 22, 
+		16, 22, 21,
+    17, 18, 23, 
+		17, 23, 22,
+    18, 19, 24, 
+		18, 24, 23 };
 	
   typedef typename TMesh::PointType PointType;
   std::vector< PointType > pts = GeneratePointCoordinates< TMesh >( 5 );
 	
-  for(int i=0; i<expectedNumPts; i++)
-	{
-    mesh->SetPoint( i, pts[i] );
+  for(int i=0; i<expectedNumPts; i++) {
+		mesh->SetPoint( i, pts[i] );
 	}
 	
   typename CellType::CellAutoPointer cellpointer;
   QEPolygonCellType *poly;
 	
-  for(int i=0; i<expectedNumCells; i++)
-	{
-    poly = new QEPolygonCellType( 3 );
+  for(int i=0; i<expectedNumCells; i++) {
+		poly = new QEPolygonCellType( 3 );
     cellpointer.TakeOwnership( poly );
     cellpointer->SetPointId( 0, simpleSquareCells[3*i] );
     cellpointer->SetPointId( 1, simpleSquareCells[3*i+1] );

@@ -7,59 +7,54 @@
 #include "itkQuadEdgeMeshPolygonCell.h"
 
 #include "itkVTKPolyDataWriter.h"
-#include "itkVTKPolyDataReader.h"
 
-
-typedef double			 PixelType;
-const		unsigned int Dimension = 3;
-typedef itk::QuadEdgeMesh< PixelType, Dimension>	QEMeshType;
+typedef	double				PixelType;
+const		unsigned int	Dimension = 3;
+typedef itk::QuadEdgeMesh< PixelType, Dimension >	QEMeshType;
 
 template< class TMesh >
 std::vector< typename TMesh::PointType > GeneratePointCoordinates( const unsigned int& iN );
+
 template< class TMesh >
 void CreateSquareTriangularMesh( typename TMesh::Pointer mesh );
+
 template< class TPointType >
 double orientation ( TPointType p , TPointType q , TPointType r );
 
 int main(int argc, char * argv[] )
 {
-	
 	//-----------------------------------
 	// Typedef
-	//-----------------------------------
 
-	typedef QEMeshType::PointType	PointType;
-	typedef QEMeshType::CellType	CellType;
+	typedef QEMeshType::PointType				PointType;
+	typedef QEMeshType::CellType				CellType;
 	typedef QEMeshType::PointIdentifier	PointIdentifier;
 	typedef QEMeshType::CellIdentifier	CellIdentifier;
 	typedef QEMeshType::PointsContainer	PointsContainer;
 	typedef QEMeshType::CellsContainer	CellsContainer;
-	typedef QEMeshType::PointIdList	PointIdList;
-	typedef QEMeshType::QEType	QEdgeType;
+	typedef QEMeshType::PointIdList			PointIdList;
+	typedef QEMeshType::QEType					QEdgeType;
 
-	typedef PointType::VectorType	VectorType;
-	typedef CellType::PointIdIterator	PointIdIterator;
+	typedef PointType::VectorType						VectorType;
+	typedef CellType::PointIdIterator				PointIdIterator;
 	typedef CellType::PointIdConstIterator	PointIdConstIterator;
 	
-	typedef CellType::CellAutoPointer	CellAutoPointer;	
+	typedef CellType::CellAutoPointer						CellAutoPointer;	
 	typedef QEMeshType::CellsContainerIterator	CellsContainerIteratorType;
   
 	typedef itk::VTKPolyDataWriter< QEMeshType >	MeshWriterType;
-	typedef itk::VTKPolyDataReader< QEMeshType >	MeshReaderType;
-
 	
 	//-----------------------------------
 	// Test Mesh 
 	//-----------------------------------
 	
 	QEMeshType::Pointer myMesh = QEMeshType::New();
+	CreateSquareTriangularMesh< QEMeshType >	( myMesh );
 	
-	CreateSquareTriangularMesh<QEMeshType	> (myMesh);
-	
-  std::cout<<"\nNo. of Cells : "<<myMesh->GetNumberOfCells()
-		<<"\nNo. of Edges : "<<myMesh->GetNumberOfEdges()
-		<<"\nNo. of Faces : "<<myMesh->GetNumberOfFaces()
-		<<"\nNo. of Points : "<<myMesh->GetNumberOfPoints()<<"\n\n";
+	std::cout<<"\nNo. of Cells : "<<myMesh->GetNumberOfCells()
+	<<"\nNo. of Edges : "<<myMesh->GetNumberOfEdges()
+	<<"\nNo. of Faces : "<<myMesh->GetNumberOfFaces()
+	<<"\nNo. of Points : "<<myMesh->GetNumberOfPoints()<<"\n\n";
 	
 	
 	MeshWriterType::Pointer writer = MeshWriterType::New();
@@ -81,7 +76,8 @@ int main(int argc, char * argv[] )
 	// INPUT = CellIdentifier
 	// OUTPUT = CellIdentifier
 	//
-	//	TEMPORARY INITIALISATION = Get cell t the first cell ID in T  ||   Get cell t the last cell ID processed
+	//	TEMPORARY INITIALISATION = Get cell t the first cell ID in T  ||   
+	//														 Get cell t the last cell ID processed
 	//
 	//	Test if p inside t
 	//	While seeked point p is not inside cell t
@@ -102,15 +98,15 @@ int main(int argc, char * argv[] )
 	
 	
 	// Initialisation
-	bool win			 = false, 
-	     edgeFound = false;
+	bool win				= false, 
+	     edgeFound	= false;
 	double scalarA, 
 	       scalarB;
 	
 	VectorType directionVector, edgeVector;
 	
-	PointType barycentre;
-	PointType cellPoint, edgePointA, edgePointB;
+	PointType	barycentre;
+	PointType	cellPoint,	edgePointA,	edgePointB;
 	PointIdentifier	edgePointIdA,	edgePointIdB;
 	
 	CellAutoPointer myCellPointer;  

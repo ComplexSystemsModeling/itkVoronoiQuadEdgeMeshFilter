@@ -25,6 +25,9 @@ void CreateSquareTriangularMesh( typename TMesh::Pointer mesh );
 template< class TPointType >
 double orientation ( TPointType p , TPointType q , TPointType r );
 
+template< class TPointType >
+bool IsInTriangle ( TPointType p, TPointType a, TPointType b, TPointType c );
+
 int main(int argc, char * argv[] )
 {
 	//-----------------------------------
@@ -68,9 +71,9 @@ int main(int argc, char * argv[] )
 
 	// Test point
 	PointType seekPoint;
-	seekPoint[0] = 3.5;
+	seekPoint[0] = 2.75;
 	seekPoint[1] = 2.25;
-	
+
 	std::cout<<" seek point : "<<seekPoint[0]<<" "<<seekPoint[1]<<"\n";
 	
 	//-----------------------------------
@@ -102,7 +105,7 @@ int main(int argc, char * argv[] )
 	//-----------------------------------
 	
 	// Initialisation
-	bool win	= false, 
+	bool found	= false, 
 	     edgeFound	= false;
 	double scalarA, 
 	       scalarB;
@@ -111,19 +114,29 @@ int main(int argc, char * argv[] )
 	
 	PointType	barycentre;
 	PointType	cellPoint, edgePointA, edgePointB;
+	PointType A,B,C;
 	PointIdentifier	edgePointIdA, edgePointIdB;
 	
 	CellAutoPointer myCellPointer;  
 	CellsContainer  *myCellsContainer = myMesh->GetCells();
 	CellsContainerIteratorType myCellIterator = myCellsContainer->Begin();
 	CellIdentifier myCellIndex = myCellIterator.Index();
-	CellIdentifier myNewCellIndex;
+	CellIdentifier myOldCellIndex;
 	
 	// Test if the point is in the cell
-	// win = isInside(myCellIndex , seekPoint)
+	if (myMesh->GetCell( myCellIndex, myCellPointer)) {
+		PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
+		myMesh->GetPoint( *pointIdIterator, &A );
+		pointIdIterator++;
+		myMesh->GetPoint( *pointIdIterator, &B );
+		pointIdIterator++;
+		myMesh->GetPoint( *pointIdIterator, &C );
+		found = IsInTriangle(seekPoint, A, B, C);
+		std::cout<<"isInTriangle Initial test : "<<found<<"\n";
+	}
 	
 	// Do until we found the cell or we reach a border
-	while( !win )  {
+	while( !found )  {
 		
 		barycentre[0] = 0;
 		barycentre[1] = 0;
@@ -132,9 +145,8 @@ int main(int argc, char * argv[] )
 		// If exist save the Cell pointer 
 		if( myMesh->GetCell( myCellIndex, myCellPointer ) ) 
 		{
+			std::cout<<"We are in Cell Id : "<<myCellIndex<<"\n";
 			// Test the type of Cell 0=point 1=line 2=triangle 3=square 4=polygone
-			// For now it should be 4, should work also with 3 and 2
-			// Shouldnt work with 0 and 1
 			if( myCellPointer->GetType() == 4)													
 			{ 
 				// Calculate the barycentre of the current cell					
@@ -142,11 +154,12 @@ int main(int argc, char * argv[] )
 				while (pointIdIterator != myCellPointer->PointIdsEnd()) {
 					myMesh->GetPoint( *pointIdIterator, &cellPoint );
 					barycentre[0] = barycentre[0] + cellPoint[0];
-					barycentre[1] = barycentre[0] + cellPoint[1];
+					barycentre[1] = barycentre[1] + cellPoint[1];
 					pointIdIterator++;
 				}
 				barycentre[0] = barycentre[0] / myCellPointer->GetNumberOfPoints();
 				barycentre[1] = barycentre[1] / myCellPointer->GetNumberOfPoints();
+				std::cout<<" The baricentre of the cell "<<myCellIndex<<" is : "<<barycentre[0]<<" "<<barycentre[1]<<"\n";
 			}
 			else
 			{
@@ -160,24 +173,35 @@ int main(int argc, char * argv[] )
 
 		// Determined the Edge of the Cell that cross the direction we need to go
 		// Get the id of the first point in the cell
-		PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
-		myMesh->GetPoint( *pointIdIterator, &edgePointB );
-		
+		PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();		
+		int cpt = 0;
+		edgeFound = false;
 		// Loop on all point of the cell two by two and test the edge
 		// TODO => Check not infinity loop in worst case
 		do {
-			edgePointA = edgePointB;
+			myMesh->GetPoint( *pointIdIterator, &edgePointA );
+			edgePointIdA = *pointIdIterator;
 			pointIdIterator++;
+			if (pointIdIterator == myCellPointer->PointIdsEnd()) {
+				pointIdIterator = myCellPointer->PointIdsBegin();
+			}
 			myMesh->GetPoint( *pointIdIterator, &edgePointB );
-			
+			edgePointIdB = *pointIdIterator;
+
+			std::cout<<"-----------\n";
+			std::cout<<"We test the edge : "<<edgePointIdA<<" - "<<edgePointIdB<<"\n";
 			scalarA = orientation(barycentre, seekPoint, edgePointA) ; // TODO => Exact discrete geometry ?
 			scalarB = orientation(barycentre, seekPoint, edgePointB) ; // TODO => Exact discrete geometry ?
-			
-			if (scalarA >= 0 && scalarB >= 0) {
-				edgePointIdB = *pointIdIterator;
-				edgePointIdA = *--pointIdIterator;
+			std::cout<<"orientation result : "<<scalarA<<" and "<<scalarB<<"\n";
+			if (scalarA>=0  && scalarB>=0  ) {
 				edgeFound = true;
+				std::cout<<"edgefound : "<<edgePointIdA<<" "<<edgePointIdB<<"\n";
 			}
+			else {
+				std::cout<<"not the good edge \n";
+			}
+
+			cpt++;
 		}
 		while ( !edgeFound );
 				
@@ -185,9 +209,12 @@ int main(int argc, char * argv[] )
 		// => edgePointIdA | *edgePointA and edgePointIdB | *edgePointB
 		// we have the id and pointer of the current cell => myCellIndex | myCellPointer
 		
+		myOldCellIndex = myCellIndex;
+		
 		// if edge e1 - e2 is a border edge then p outside mesh
 		if (myMesh->FindEdge( edgePointIdA, edgePointIdB )->IsAtBorder()) {
-			myNewCellIndex = -1;
+			std::cout<<"Border edge -- point out of the mesh \n";
+			myCellIndex = -1;
 			break;
 		}
 		else { 
@@ -196,26 +223,32 @@ int main(int argc, char * argv[] )
 
 			// Found the next cell
 			if (leftCell == myCellIndex) {
-				myNewCellIndex = rightCell;
-				myMesh->GetCell( myNewCellIndex, myCellPointer);
+				myCellIndex = rightCell;
+				myMesh->GetCell( myCellIndex, myCellPointer);
 			}
 			else {
-				myNewCellIndex = leftCell;
-				myMesh->GetCell( myNewCellIndex, myCellPointer);
+				myCellIndex = leftCell;
+				myMesh->GetCell( myCellIndex, myCellPointer);
 			}
 
-			std::cout<<"left id = "<<leftCell<<"\n";	
-			std::cout<<"right id = "<<rightCell<<"\n";	
-			std::cout<<"current id = "<<myCellIndex<<"\n";	
-			std::cout<<"new id = "<<myNewCellIndex<<"\n";
+			std::cout<<"Left id Cell = "<<leftCell<<" and  Right id Cell = "<<rightCell<<"\n";	
+			std::cout<<"Current id Cell = "<<myOldCellIndex<<"\n";	
+			std::cout<<"New id Cell = "<<myCellIndex<<"\n";
 			
 			// If Point inside
-			// win = isInside(myCellIndex , seekPoint)
+			PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
+			myMesh->GetPoint( *pointIdIterator, &A );
+			pointIdIterator++;
+			myMesh->GetPoint( *pointIdIterator, &B );
+			pointIdIterator++;
+			myMesh->GetPoint( *pointIdIterator, &C );
+			found = IsInTriangle(seekPoint, A, B, C);
+			std::cout<<"isInTriangle test : "<<found<<"\n";
 		}
 	}
 	
 	// TODO => return cell ID or -1 if outside mesh
-	// return myNewCellIndex;
+	// return myCellIndex;
   return EXIT_SUCCESS;
 
 }
@@ -237,9 +270,26 @@ double orientation ( TPointType p , TPointType q , TPointType r )
 	pr[0] = r[0] - p[0] ;
 	pr[1] = r[1] - p[1] ;
 	
-	double scalar = pq[0] * pr[0] - pq[1] * pr[1] ; 
+	double scalar = pq[0] * pr[0] + pq[1] * pr[1]  ; 
+	
+	std::cout<<"vec BP : "<<pq[0]<<" "<<pq[1]<<"\n";
+	std::cout<<"vec BR : "<<pr[0]<<" "<<pr[1]<<"\n";
+	std::cout<<"scalar product : "<<scalar<<"\n";
+	//double res = ( scalar ) >=0 ? 1 : -1 ; 
 	
 	return scalar;
+}
+
+template< class TPointType >
+bool IsInTriangle ( TPointType p, TPointType a, TPointType b, TPointType c )
+{
+	double t1 = ((p[0] - b[0]) * (a[1] - b[1]) - (a[0] - b[0]) * (p[1] - b[1])>=0)?1:0;
+	double t2 = ((p[0] - c[0]) * (b[1] - c[1]) - (b[0] - c[0]) * (p[1] - c[1])>=0)?1:0;
+	double t3 =	((p[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (p[1] - a[1])>=0)?1:0;
+	
+	bool results = ( (t1 == t2) && (t2 == t3) );
+	
+	return results;
 }
 
 //////////////////////////////////////

@@ -7,6 +7,8 @@
 #include "itkVTKPolyDataWriter.h"
 #include <iostream>
 
+// Hello
+
 // TODO :
 // => Inside Triangle Test
 // => Validation Test

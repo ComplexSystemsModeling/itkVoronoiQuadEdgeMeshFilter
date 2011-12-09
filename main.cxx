@@ -31,11 +31,11 @@ bool IsInTriangle ( TPointType p, TPointType a, TPointType b, TPointType c );
 int main(int argc, char * argv[] )
 {
 	
-	if (argc<3) {
+	/*if (argc<3) {
 		std::cerr<<"Usage "<<std::endl;
 		std::cerr<<argv[0]<<" Px Py"<<std::endl;
 		return EXIT_FAILURE;
-	}
+	}*/
 	
 	//-----------------------------------
 	// Typedef
@@ -105,14 +105,15 @@ int main(int argc, char * argv[] )
 	
 	// Test point
 	PointType seekPoint;
-	seekPoint[0] = atof(argv[1]);
-	seekPoint[1] = atof(argv[2]);
+	seekPoint[0] = 0.25 ;//atof(argv[1]);
+	seekPoint[1] = 3.25 ;//atof(argv[2]);
 	std::cout<<" seek point : "<<seekPoint[0]<<" "<<seekPoint[1]<<"\n";
 	
 	// compteur
-	unsigned int	edgeTest = 0,
-								triangleTest = 0,
-								edgeCrossed = 0;
+	unsigned int edgeTest = 0,
+		triangleTest = 0,
+		edgeCrossed = 0,
+		basicTest = 0;
 	
 	// Initialisation
 	bool found	= false, 
@@ -156,6 +157,8 @@ int main(int argc, char * argv[] )
 		
 		triangleTest++;
 		edgeTest+=3;
+		
+		basicTest+=6;
 		
 	}
 	
@@ -217,10 +220,11 @@ int main(int argc, char * argv[] )
 					  myMesh->FindEdge( edgePointIdA, edgePointIdB ) != myMesh->FindEdge( previousEdgePointIdB, previousEdgePointIdA ) ) 
 			{
 				
-				edgeTest++;
-				
 				direction = orientation(edgePointA, edgePointB, seekPoint);
 				directionTest = orientation(edgePointA, edgePointB, barycentre);
+				
+				edgeTest++;
+				basicTest+=2;
 				
 				if (direction != directionTest) {
 					edgeFound = true;
@@ -288,6 +292,7 @@ int main(int argc, char * argv[] )
 			
 			triangleTest++;
 			edgeTest+=3;
+			basicTest+=6;
 			
 		}
 		std::cout<<"\n\n";
@@ -297,6 +302,7 @@ int main(int argc, char * argv[] )
 	std::cout<<"---------------------------------------------\n";
 	std::cout<<edgeTest<<" edge test was made\n";
 	std::cout<<triangleTest<<" triangle test was made\n";
+	std::cout<<basicTest<<" minimal operation\n";
 	std::cout<<edgeCrossed<<" walk was made\n";
 	
 	// TODO => return cell ID or -1 if outside mesh

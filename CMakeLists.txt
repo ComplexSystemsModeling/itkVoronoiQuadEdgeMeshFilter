@@ -9,6 +9,7 @@ ENDIF( ITK_FOUND )
 
 ADD_EXECUTABLE( walkTriangulation
   WalkTriangulation.cxx
+  src/predicates.c
   )
 TARGET_LINK_LIBRARIES( walkTriangulation
 ${ITK_LIBRARIES}

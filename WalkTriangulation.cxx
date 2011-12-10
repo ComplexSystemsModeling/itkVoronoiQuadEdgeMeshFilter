@@ -28,8 +28,50 @@
 #include "itkQuadEdgeMeshTraits.h"
 #include "itkQuadEdgeMeshPolygonCell.h"
 
+#include "vnl/vnl_det.h" 
+#include "vnl/vnl_matrix_fixed.h" 
+
 #include "itkVTKPolyDataWriter.h"
 #include <iostream>
+
+//------------------------------------------------------------------------------
+// Skewchuck code
+//
+extern "C"
+{
+  double incircle(double* pa, double* pb, double* pc, double* pd);
+  double orient2d(double* pa, double* pb, double* pc);
+}
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// The test functor to map skewchuck code to ITK's API
+//
+template< typename TPointType >
+double
+orientation2d( 
+				 const TPointType& TrianglePoint1,
+				 const TPointType& TrianglePoint2,
+				 const TPointType& PointToTest
+				  )
+{
+	
+  double * pa = new double[2];
+  double * pb = new double[2];
+  double * pc = new double[2];
+  pa[0] = TrianglePoint1[0];
+  pa[1] = TrianglePoint1[1];
+  pb[0] = TrianglePoint2[0];
+  pb[1] = TrianglePoint2[1];
+  pc[0] = PointToTest[0];
+  pc[1] = PointToTest[1];
+	
+  // orientation test
+  double orientation = orient2d( pa, pb, pc );
+	return( orientation>=0?1:-1 );
+}
+//------------------------------------------------------------------------------
+
 
 typedef	double	PixelType;
 const	unsigned int	Dimension = 3;
@@ -42,8 +84,8 @@ std::vector< typename TMesh::PointType > GeneratePointCoordinates( const unsigne
 template< class TMesh >
 void CreateSquareTriangularMesh( typename TMesh::Pointer mesh );
 
-template< class TPointType >
-double orientation ( TPointType r , TPointType a , TPointType b );
+//template< class TPointType >
+//double orientation ( TPointType r , TPointType a , TPointType b );
 
 
 int main(int argc, char * argv[] )
@@ -92,7 +134,7 @@ int main(int argc, char * argv[] )
 	
 	PointType destination;
 	destination[0] = atof(argv[1]); destination[1] = atof(argv[2]);
-	//destination[0] = 0.75; destination[1] = 3.25;
+	//destination[0] = 2.75; destination[1] = 3.25;
 	
 	PointType	pointQ, pointA, pointB, pointC;
 	PointIdentifier	pointIdQ, pointIdA, pointIdB, pointIdC;	
@@ -119,9 +161,9 @@ int main(int argc, char * argv[] )
 		pointIdC = *pointIdIterator;
 		myMesh->GetPoint( *pointIdIterator, &pointC );
 		
-		if ( orientation( pointB, pointQ, destination ) < 0 )  {
+		if ( orientation2d( pointB, pointQ, destination ) < 0 )  {
 			orientationTestCompter += 1;
-			while ( orientation( pointC, pointQ, destination ) < 0 ) {
+			while ( orientation2d( pointC, pointQ, destination ) < 0 ) {
 				orientationTestCompter += 1;
 				// r = l
 				pointIdB = pointIdC;
@@ -202,11 +244,11 @@ int main(int argc, char * argv[] )
 					}
 				}
 			}
-			while ( orientation( pointB, pointQ, destination ) < 0 );			
+			while ( orientation2d( pointB, pointQ, destination ) < 0 );			
 		}
 		// End of initialisation step
 		// Q-destination vector has B on its right and C on its left
-		while ( orientation( destination, pointB, pointC ) < 0 ) {
+		while ( orientation2d( destination, pointB, pointC ) < 0 ) {
 			orientationTestCompter += 1;
 			// t = neighbour( t through rl )
 			if (myMesh->FindEdge( pointIdB, pointIdC )->IsAtBorder()) {
@@ -241,7 +283,7 @@ int main(int argc, char * argv[] )
 					}
 				}
 			}
-			if ( orientation( pointA, pointQ, destination ) < 0 ) {
+			if ( orientation2d( pointA, pointQ, destination ) < 0 ) {
 				orientationTestCompter += 1;
 				// r = s
 				pointIdB = pointIdA;
@@ -267,12 +309,12 @@ int main(int argc, char * argv[] )
 //////////////////////////////////////
 // Test Orientation => TODO exact discrete geometry ?
 
-template< class TPointType >
+/*template< class TPointType >
 double orientation ( TPointType r , TPointType a , TPointType b )
 {	
 	double scalar = (a[0] - r[0]) * (b[1] - r[1]) - (a[1] - r[1]) * (b[0] - r[0]);	
 	return ( scalar ) >=0 ? 1 : -1 ; 
-}
+}*/
 
 //////////////////////////////////////
 // Test Mesh Generation Function

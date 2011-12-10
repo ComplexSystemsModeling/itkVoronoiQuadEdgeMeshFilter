@@ -17,7 +17,7 @@
 *   Output int I index of the cell that contain the destination point
 *          if I = -1, destination point is outside the mesh
 *
-*   TODO => Include exact discrete geometry predicate
+*   TODO 
 *        => Validation test
 *        => Functorise the implementation
 *

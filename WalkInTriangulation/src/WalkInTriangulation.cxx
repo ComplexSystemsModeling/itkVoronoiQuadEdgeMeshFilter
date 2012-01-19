@@ -8,17 +8,17 @@
 *   pages 106-114, 2001
 *
 *   Implementation for ITK by Stéphane Ulysse Rigaud
-*		IPAL (Image & Pervasive Access Lab) CNRS - A*STAR
-*		Singapore
+*   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR
+*   Singapore
 *
 *   Input double  X coordinate of the destination point in the mesh
 *         double  Y coordinate of the destination point in the mesh
+*         unsigned int I starting cell id
 *
 *   Output int I index of the cell that contain the destination point
 *          if I = -1, destination point is outside the mesh
 *
-*   TODO 
-*        => Validation test
+*   TODO => Validation test
 *        => Functorise the implementation
 *
 *=========================================================================*/
@@ -31,46 +31,10 @@
 #include "vnl/vnl_det.h" 
 #include "vnl/vnl_matrix_fixed.h" 
 
-#include "itkVTKPolyDataWriter.h"
+#include "itkVTKPolyDataReader.h"
 #include <iostream>
 
-//------------------------------------------------------------------------------
-// Skewchuck code
-//
-extern "C"
-{
-  double incircle(double* pa, double* pb, double* pc, double* pd);
-  double orient2d(double* pa, double* pb, double* pc);
-}
-//------------------------------------------------------------------------------
-
-//------------------------------------------------------------------------------
-// The test functor to map skewchuck code to ITK's API
-//
-template< typename TPointType >
-double
-orientation2d( 
-				 const TPointType& TrianglePoint1,
-				 const TPointType& TrianglePoint2,
-				 const TPointType& PointToTest
-				  )
-{
-	
-  double * pa = new double[2];
-  double * pb = new double[2];
-  double * pc = new double[2];
-  pa[0] = TrianglePoint1[0];
-  pa[1] = TrianglePoint1[1];
-  pb[0] = TrianglePoint2[0];
-  pb[1] = TrianglePoint2[1];
-  pc[0] = PointToTest[0];
-  pc[1] = PointToTest[1];
-	
-  // orientation test
-  double orientation = orient2d( pa, pb, pc );
-	return( orientation>=0?1:-1 );
-}
-//------------------------------------------------------------------------------
+#include "itkWalkInTriangulationFunctor.h"
 
 
 typedef	double	PixelType;
@@ -84,237 +48,78 @@ std::vector< typename TMesh::PointType > GeneratePointCoordinates( const unsigne
 template< class TMesh >
 void CreateSquareTriangularMesh( typename TMesh::Pointer mesh );
 
-//template< class TPointType >
-//double orientation ( TPointType r , TPointType a , TPointType b );
-
-
 int main(int argc, char * argv[] )
 {
-	if (argc<3) {
-	 std::cerr<<"Usage "<<std::endl;
-	 std::cerr<<argv[0]<<" DestinationPointX DestinationPointY"<<std::endl;
-	 return EXIT_FAILURE;
-	}
+	//if (argc<3) {
+	// std::cerr<<"Usage "<<std::endl;
+	// std::cerr<<argv[0]<<" DestinationPointX DestinationPointY InitialCellId"<<std::endl;
+	// return EXIT_FAILURE;
+	//}
 	
-	typedef QEMeshType::PointType	PointType;
-	typedef QEMeshType::CellType	CellType;
+	// Typedef
 	
-	typedef QEMeshType::PointIdentifier	PointIdentifier;
-	typedef QEMeshType::CellIdentifier	CellIdentifier;
+	typedef QEMeshType::PointType              PointType;
+	typedef QEMeshType::CellType               CellType;
+	typedef QEMeshType::PointIdentifier        PointIdentifier;
+	typedef QEMeshType::CellIdentifier         CellIdentifier;
+	typedef QEMeshType::PointsContainer        PointsContainer;
+	typedef QEMeshType::CellsContainer         CellsContainer;
+	typedef QEMeshType::PointIdList            PointIdList;
+	typedef QEMeshType::QEType                 QuadEdgeType;
+	typedef QEMeshType::CellsContainerIterator CellsContainerIteratorType;
 	
-	typedef QEMeshType::PointsContainer	PointsContainer;
-	typedef QEMeshType::CellsContainer	CellsContainer;
+	typedef CellType::PointIdConstIterator     PointIdConstIterator;
+	typedef CellType::PointIdIterator          PointIdIterator;
+	typedef CellType::CellAutoPointer          CellAutoPointer;	
 	
-	typedef QEMeshType::PointIdList	PointIdList;
-	typedef QEMeshType::QEType	QuadEdgeType;
-	typedef QEMeshType::CellsContainerIterator	CellsContainerIteratorType;
+	typedef itk::VTKPolyDataReader< QEMeshType >	MeshReaderType;
 	
-	typedef CellType::PointIdConstIterator	PointIdConstIterator;
-	typedef CellType::PointIdIterator	PointIdIterator;
-	typedef CellType::CellAutoPointer	CellAutoPointer;	
+	// Mesh Initialisation
 	
-	typedef itk::VTKPolyDataWriter< QEMeshType >	MeshWriterType;
+	QEMeshType::Pointer mesh = QEMeshType::New();
 	
-	QEMeshType::Pointer myMesh = QEMeshType::New();
-	CreateSquareTriangularMesh< QEMeshType >	( myMesh );
+	MeshReaderType::Pointer reader = MeshReaderType::New();
+	reader->SetFileName("StandartTestMesh.vtk");
+	reader->Update();
+	mesh = reader->GetOutput();
 	
-	std::cout<<"\nNo. of Cells : "<<myMesh->GetNumberOfCells()
-		<<"\nNo. of Edges : "<<myMesh->GetNumberOfEdges()
-		<<"\nNo. of Faces : "<<myMesh->GetNumberOfFaces()
-		<<"\nNo. of Points : "<<myMesh->GetNumberOfPoints()<<"\n\n";
-	
-	MeshWriterType::Pointer writer = MeshWriterType::New();
-	
-	writer->SetFileName("./myMesh.vtk");
-	writer->SetInput(myMesh);
-	writer->Update();
+	std::cout<<"\nNo. of Cells : "<<mesh->GetNumberOfCells()
+	         <<"\nNo. of Edges : "<<mesh->GetNumberOfEdges()
+	         <<"\nNo. of Faces : "<<mesh->GetNumberOfFaces()
+           <<"\nNo. of Points : "<<mesh->GetNumberOfPoints()<<"\n\n";
 
-	unsigned int orientationTestCompter =0, 
-		triangleVisitedCompter =0;
+	// Walk in a Triangulation Algorithm Test 
+	// Standard Mesh Test
 	
-	PointType destination;
-	destination[0] = atof(argv[1]); destination[1] = atof(argv[2]);
-	//destination[0] = 2.75; destination[1] = 3.25;
+	PointType pts1, pts2;
+	CellIdentifier cell1, cell2;
+	CellIdentifier res1, res2;
 	
-	PointType	pointQ, pointA, pointB, pointC;
-	PointIdentifier	pointIdQ, pointIdA, pointIdB, pointIdC;	
+	pts1[0] = 3.75; pts1[1] = 3.25; cell1 = 0;
+	pts2[0] = 0.75; pts2[1] = 0.25; cell2 = 31;
 	
-	CellAutoPointer	myCellPointer;  
-	CellsContainer	*myCellsContainer = myMesh->GetCells();
-	CellsContainerIteratorType	myCellIterator = myCellsContainer->Begin();
-	CellIdentifier	myCellIndex = myCellIterator.Index();
-	CellIdentifier	myOldCellIndex;
+	res1 = WalkInTriangulation< QEMeshType >( mesh, pts1, cell1, true);
+	res2 = WalkInTriangulation< QEMeshType >( mesh, pts2, cell2, true);
 	
-	if (myMesh->GetCell( myCellIndex, myCellPointer)) { 
-		triangleVisitedCompter+=1;
-		
-		PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
-		
-		pointIdQ = *pointIdIterator;
-		myMesh->GetPoint( *pointIdIterator, &pointQ );
-		pointIdIterator++;
-		
-		pointIdB = *pointIdIterator;
-		myMesh->GetPoint( *pointIdIterator, &pointB );
-		pointIdIterator++;
-		
-		pointIdC = *pointIdIterator;
-		myMesh->GetPoint( *pointIdIterator, &pointC );
-		
-		if ( orientation2d( pointB, pointQ, destination ) < 0 )  {
-			orientationTestCompter += 1;
-			while ( orientation2d( pointC, pointQ, destination ) < 0 ) {
-				orientationTestCompter += 1;
-				// r = l
-				pointIdB = pointIdC;
-				pointB = pointC;
-				// t = neighbour( t through ql )
-				if (myMesh->FindEdge( pointIdQ, pointIdC )->IsAtBorder()) {
-					std::cout<<"This is a border edge, the point is out of the mesh\n";
-					myCellIndex = -1; break;
-				}
-				else {
-					triangleVisitedCompter+=1;
-					myOldCellIndex = myCellIndex;
-					QuadEdgeType::DualOriginRefType rightCell = myMesh->FindEdge( pointIdQ, pointIdC )->GetRight();
-					QuadEdgeType::DualOriginRefType leftCell = myMesh->FindEdge( pointIdQ, pointIdC )->GetLeft();
-					if (leftCell == myCellIndex) {
-						myCellIndex = rightCell;
-					}
-					else {
-						myCellIndex = leftCell;
-					}		
-					std::cout<<"We go from cell "<<myOldCellIndex<<" to cell "<<myCellIndex<<" "
-						<<"trough the edge "<<pointIdQ<<" - "<<pointIdC<<"\n";
-				}
-				// l = vertex of t, l!=q, l!=r
-				if( myMesh->GetCell( myCellIndex, myCellPointer) ) {
-					PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
-					pointIdC = *pointIdIterator;
-					myMesh->GetPoint( *pointIdIterator, &pointC );
-					pointIdIterator++;
-					while (pointIdC == pointIdB || pointIdC == pointIdQ) {
-						if (pointIdIterator != myCellPointer->PointIdsEnd()) {
-							pointIdC = *pointIdIterator;
-							myMesh->GetPoint( *pointIdIterator, &pointC );
-							pointIdIterator++;
-						}
-					}
-				}
-			}
-		}
-		else {
-			orientationTestCompter += 1;
-			do {
-				orientationTestCompter += 1;
-				// l = r
-				pointIdC = pointIdB;
-				pointC = pointB;
-				// t = neighbour( t through ql )
-				if (myMesh->FindEdge( pointIdQ, pointIdB )->IsAtBorder()) {
-					std::cout<<"This is a border edge, the point is out of the mesh\n";
-					myCellIndex = -1; break;
-				}
-				else {
-					triangleVisitedCompter+=1;
-					myOldCellIndex = myCellIndex;
-					QuadEdgeType::DualOriginRefType rightCell = myMesh->FindEdge( pointIdQ, pointIdB )->GetRight();
-					QuadEdgeType::DualOriginRefType leftCell = myMesh->FindEdge( pointIdQ, pointIdB )->GetLeft();
-					if (leftCell == myCellIndex) {
-						myCellIndex = rightCell;
-					}
-					else {
-						myCellIndex = leftCell;
-					}		
-					std::cout<<"We go from cell "<<myOldCellIndex<<" to cell "<<myCellIndex<<" "
-						<<"trough the edge "<<pointIdQ<<" - "<<pointIdB<<"\n";
-				}
-				// r = vertex of t, r!=q, r!=l
-				if( myMesh->GetCell( myCellIndex, myCellPointer) ) {
-					PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
-					pointIdB = *pointIdIterator;
-					myMesh->GetPoint( *pointIdIterator, &pointB );
-					pointIdIterator++;
-					while (pointIdB == pointIdC || pointIdB == pointIdQ) {
-						if (pointIdIterator != myCellPointer->PointIdsEnd()) {
-							pointIdB = *pointIdIterator;
-							myMesh->GetPoint( *pointIdIterator, &pointB );
-							pointIdIterator++;
-						}
-					}
-				}
-			}
-			while ( orientation2d( pointB, pointQ, destination ) < 0 );			
-		}
-		// End of initialisation step
-		// Q-destination vector has B on its right and C on its left
-		while ( orientation2d( destination, pointB, pointC ) < 0 ) {
-			orientationTestCompter += 1;
-			// t = neighbour( t through rl )
-			if (myMesh->FindEdge( pointIdB, pointIdC )->IsAtBorder()) {
-				std::cout<<"This is a border edge, the point is out of the mesh\n";
-				myCellIndex = -1; break;
-			}
-			else {
-				triangleVisitedCompter+=1;
-				myOldCellIndex = myCellIndex;
-				QuadEdgeType::DualOriginRefType rightCell = myMesh->FindEdge( pointIdB, pointIdC )->GetRight();
-				QuadEdgeType::DualOriginRefType leftCell = myMesh->FindEdge( pointIdB, pointIdC )->GetLeft();
-				if (leftCell == myCellIndex) {
-					myCellIndex = rightCell;
-				}
-				else {
-					myCellIndex = leftCell;
-				}
-				std::cout<<"We go from cell "<<myOldCellIndex<<" to cell "<<myCellIndex<<" "
-					<<"trough the edge "<<pointIdB<<" - "<<pointIdC<<"\n";
-			}
-			// s = vertex of t, s!=r, s!=l
-			if( myMesh->GetCell( myCellIndex, myCellPointer) ) {
-				PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
-				pointIdA = *pointIdIterator;
-				myMesh->GetPoint( *pointIdIterator, &pointA );
-				pointIdIterator++;
-				while (pointIdA == pointIdB || pointIdA == pointIdC) {
-					if (pointIdIterator != myCellPointer->PointIdsEnd()) {
-						pointIdA = *pointIdIterator;
-						myMesh->GetPoint( *pointIdIterator, &pointA );
-						pointIdIterator++;
-					}
-				}
-			}
-			if ( orientation2d( pointA, pointQ, destination ) < 0 ) {
-				orientationTestCompter += 1;
-				// r = s
-				pointIdB = pointIdA;
-				pointB = pointA;
-			}
-			else {
-				orientationTestCompter += 1;
-				// l = s
-				pointIdC = pointIdA;
-				pointC = pointA;
-			}
-		}
-		// destination reached
-		std::cout<<"We arrived at destination : "<<myCellIndex<<"\n";
-		std::cout<< orientationTestCompter <<" orientation test was made \n";
-		std::cout<< triangleVisitedCompter <<" triangle was visited \n";
-	}
+	// Random Mesh Test
 	
+	reader->SetFileName("RandomTestMesh.vtk");
+	reader->Update();
+	mesh = reader->GetOutput();
+	
+	std::cout<<"\nNo. of Cells : "<<mesh->GetNumberOfCells()
+	<<"\nNo. of Edges : "<<mesh->GetNumberOfEdges()
+	<<"\nNo. of Faces : "<<mesh->GetNumberOfFaces()
+	<<"\nNo. of Points : "<<mesh->GetNumberOfPoints()<<"\n\n";
+	
+	pts1[0] = 8.75; pts1[1] = 7.25; cell1 = 3;
+	pts2[0] = 2.75; pts2[1] = 1.25; cell2 = 10;
+	
+	res1 = WalkInTriangulation< QEMeshType >( mesh, pts1, cell1, true);
+	res2 = WalkInTriangulation< QEMeshType >( mesh, pts2, cell2, true);
 	
 	return EXIT_SUCCESS;
 }
-
-//////////////////////////////////////
-// Test Orientation => TODO exact discrete geometry ?
-
-/*template< class TPointType >
-double orientation ( TPointType r , TPointType a , TPointType b )
-{	
-	double scalar = (a[0] - r[0]) * (b[1] - r[1]) - (a[1] - r[1]) * (b[0] - r[0]);	
-	return ( scalar ) >=0 ? 1 : -1 ; 
-}*/
 
 //////////////////////////////////////
 // Test Mesh Generation Function
@@ -411,4 +216,4 @@ void CreateSquareTriangularMesh( typename TMesh::Pointer mesh )
     cellpointer->SetPointId( 2, simpleSquareCells[3*i+2] );
     mesh->SetCell( i, cellpointer );
 	}
-}
+}	

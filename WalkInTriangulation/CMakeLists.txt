@@ -16,3 +16,10 @@ ADD_EXECUTABLE( WalkInTriangulation
 TARGET_LINK_LIBRARIES( WalkInTriangulation
 ${ITK_LIBRARIES}
   )
+
+include( CTest )
+
+add_test( WalkInTriangulationTest01
+  WalkIntriangulation ${CMAKE_CURRENT_SOURCE_DIR}/Data/StandardTestMesh.vtk 1 2 0
+  )
+

@@ -11,9 +11,10 @@
 *   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR
 *   Singapore
 *
-*   Input double  X coordinate of the destination point in the mesh
+*   Input string  Mtk mesh name
+*         double  X coordinate of the destination point in the mesh
 *         double  Y coordinate of the destination point in the mesh
-*         unsigned int I starting cell id
+*         unsigned int Starting cell id
 *
 *   Output int I index of the cell that contain the destination point
 *          if I = -1, destination point is outside the mesh
@@ -28,15 +29,13 @@
 #include "itkQuadEdgeMeshTraits.h"
 #include "itkQuadEdgeMeshPolygonCell.h"
 #include "itkVectorContainer.h"
-
+#include "itkVTKPolyDataReader.h"
+#include "itkWalkInTriangulationFunctor.h"
 
 #include "vnl/vnl_det.h" 
 #include "vnl/vnl_matrix_fixed.h" 
 
-#include "itkVTKPolyDataReader.h"
 #include <iostream>
-
-#include "itkWalkInTriangulationFunctor.h"
 
 
 typedef	double	PixelType;
@@ -70,6 +69,7 @@ int main(int argc, char * argv[] )
 		}
 	}
 
+	// -----------------------------------------------------
 	// Typedef
 	
 	typedef QEMeshType::PointType              PointType;
@@ -105,7 +105,8 @@ int main(int argc, char * argv[] )
            <<"\nNo. of Points : "<<mesh->GetNumberOfPoints()<<"\n\n";
 
 
-	// Walk in a Triangulation Algorithm Test 
+	// -----------------------------------------------------
+	// WalkInTriangulation Test
 	
 	PointType pts;
 	CellIdentifier cell;
@@ -117,13 +118,13 @@ int main(int argc, char * argv[] )
 	VectorContainerType::Pointer resultPath = VectorContainerType::New();
 	resultPath = WalkInTriangulation< QEMeshType >( mesh, pts, cell, true);
 	
-	
 	std::cout<<"The point ("<<pts[0]<<";"<<pts[1]<<") is in the cell id "<<resultPath->GetElement(resultPath->Size()-1)<<std::endl;
-	bool flag = true;
 
 	
-	// Excpected Path
-	//if (argc > 6) {
+	// -----------------------------------------------------
+	// Path Check
+	
+	if (argc > 6) {
 
 		std::cout<<"expected path : ";
 		VectorContainerType::Pointer expectedPath = VectorContainerType::New();
@@ -131,8 +132,7 @@ int main(int argc, char * argv[] )
 			expectedPath->InsertElement(i,atoi(argv[6+i]));
 			std::cout<<argv[6+i]<<" ";
 		}
-		std::cout<<std::endl;
-		std::cout<<"result path : ";
+		std::cout<<"\nresult path : ";
 		VectorContainerType::Iterator ite = resultPath->Begin();
 		while (ite!=resultPath->End()) {
 			std::cout<<ite.Value()<<" ";
@@ -142,14 +142,17 @@ int main(int argc, char * argv[] )
 		
 		VectorContainerType::Iterator ite1 = resultPath->Begin();
 		VectorContainerType::Iterator ite2 = expectedPath->Begin();
-		while (ite1 != resultPath->End() && ite2 != expectedPath->End() && flag) {
+		while (ite1 != resultPath->End() && ite2 != expectedPath->End()) {
 			if (ite1.Value() != ite2.Value()) {
-				flag = false;
+				return EXIT_FAILURE;
 			}
 			++ite1; 
 			++ite2;			
 		}
-	//}
-	
-	return flag;
+		return EXIT_SUCCESS;
+	}
+	else {
+		return EXIT_SUCCESS;
+	}
+
 }

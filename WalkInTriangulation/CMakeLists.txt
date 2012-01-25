@@ -18,8 +18,8 @@ ${ITK_LIBRARIES}
   )
 
 INCLUDE( CTest )
-ENABLE_TESTING()
 
+# set of test in order to validate the algorithm
 ADD_TEST( WalkInTriangulationTest01
   WalkIntriangulation ${CMAKE_CURRENT_SOURCE_DIR}/Data/StandardTestMesh.vtk 3.75 3.25 0 7 0 3 10 13 20 23 30
   )

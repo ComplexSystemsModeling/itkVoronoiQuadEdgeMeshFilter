@@ -85,7 +85,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 % scope of the document.
 \begin{abstract}
 \noindent
-This document describes the implementation in ITK of the Straight Walk in a Triangulation algorithm proposed by Devillers \emph{et al.} \cite{Devillers2001}. Based on the exact discrete geometrical orientation predicate implemented for ITK \cite{Moreau2011}, and the \emph{itk::QuadEdgeMesh} API of ITK, we propose an efficient implementation of the Straight Walk algorithm that locate a point in a triangulated quad-edge mesh structure. This paper is accompanied with the source code and examples that should provide enough details for users.
+This document describes the implementation in ITK of the Straight Walk in a Triangulation algorithm proposed by Devillers \emph{et al.} \cite{Devillers2001}. Based on the exact discrete geometrical orientation predicate implemented for ITK \cite{Moreau2011}, and the \emph{itk::QuadEdgeMesh} API of ITK, we propose an efficient implementation of the Straight Walk algorithm that locates a point in a triangulated quad-edge mesh structure. This paper is accompanied with the source code and examples that should provide enough details for users.
 This work has for principal application an exact and robust implementation of a Delaunay triangulation / Voronoi tesselation in ITK, which will be presented in a separate paper.
 
 % description of the principle and interest
@@ -102,15 +102,15 @@ This work has for principal application an exact and robust implementation of a 
 
 \section{Principle of Walking in a Triangulation}
 
-Taking a triangulated mesh structure $\mathcal{T}$ of $\mathit{n}$ vertices in the plane $\mathcal{P}$, we try to find the triangle $\mathit{t}$ of $\mathcal{T}$ that contain a given point $\mathit{p}$. One of the simplest and most effective strategy is the Straight Walk, which consist in, given a specific or random starting point $\mathit{q}$, going through all the triangle along the direction vector $\overrightarrow{\mathit{qp}}$, using adjacency relation between triangles until the triangle that contained the point $\mathit{p}$ is reached (Fig \ref{fig:straightwalka}).
-This algorithm is especially used in Delaunay triangulation as it can be proved that it actually converge to the right triangle in a $\mathcal{O}(\lvert \mathit{qp}\rvert \sqrt{\mathit{n}})$ complexity, with $\mathit{n}$ the number of vertices of $\mathcal{T}$, and $\lvert\mathit{qp}\rvert$ the distance between $\mathit{q}$ and $\mathit{p}$.
+Taking a triangulated mesh structure $\mathcal{T}$ of $\mathit{n}$ vertices in the plane $\mathcal{P}$, we try to find the triangle $\mathit{t}$ of $\mathcal{T}$ that contain a given point $\mathit{p}$. One of the simplest and most effective strategy is the Straight Walk, which consists in, given a specific or random starting point $\mathit{q}$, going through all the triangles along the direction vector $\overrightarrow{\mathit{qp}}$, using adjacency relation between triangles until the triangle that contains the point $\mathit{p}$ is reached (Fig \ref{fig:straightwalka}).
+This algorithm is especially used in Delaunay triangulation as it can be proved that it actually converges to the right triangle in a $\mathcal{O}(\lvert \mathit{qp}\rvert \sqrt{\mathit{n}})$ complexity, with $\mathit{n}$ the number of vertices of $\mathcal{T}$, and $\lvert\mathit{qp}\rvert$ the distance between $\mathit{q}$ and $\mathit{p}$.
 The path followed by the Straight Walk is determined by an orientation predicate (simple geometric question) that gives us the direction to follow in the triangulation.
 
 \section{Implementation}
 
-The algorithm is implemented as a functor templated on a \emph{itk::QuadEdgeMesh}, taking in arguments a triangular mesh (\textit{itk::QuadEdgeMesh}), a point coordinate (\textit{itk::QuadEdgeMesh::PointType}) and optionally a starting triangle (\textit{itk::QuadEdgeMesh::CellIdentifier}). It returns a vector of index (\textit{itk::VectorContainer}) that contain the list of the visited triangles identifier. The last element of the vector is corresponding to the triangle's index containing the input point.
+The algorithm is implemented as a functor templated on a \emph{itk::QuadEdgeMesh}, taking in arguments a triangular mesh (\textit{itk::QuadEdgeMesh}), a point coordinate (\textit{itk::QuadEdgeMesh::PointType}) and optionally a starting triangle (\textit{itk::QuadEdgeMesh::CellIdentifier}). It returns a vector of index (\textit{itk::VectorContainer}) that contains the list of the visited triangles' identifiers. The last element of the vector is corresponding to the index of the triangle containing the input point.
 
-From the given initial triangle $\mathit{t}$, we randomly determine $\mathit{q}$, one of the vertices of $\mathit{t}$. We rotate around $\mathit{q}$ until the current triangle incident to $\mathit{q}$ is intersecting with the $\overrightarrow{\mathit{qp}}$ vector. Once $\mathit{t}$ is intersecting with $\overrightarrow{\mathit{qp}}$, we test on witch edge $\mathit{e}$ the vector $\overrightarrow{\mathit{qp}}$ is going out of $\mathit{t}$ using the orientation predicate (Eq. \ref{predicate}). We move to the neighbour triangle of $\mathit{t}$ that share the edge $\mathit{e}$ and test again, in the current triangle, which edge is crossed by the $\overrightarrow{\mathit{qp}}$. The walk stop when no edge crossing $\overrightarrow{\mathit{qp}}$ is found (Fig \ref{fig:straightwalkb}).
+From the given initial triangle $\mathit{t}$, we randomly determine $\mathit{q}$, one of the vertices of $\mathit{t}$. We rotate around $\mathit{q}$ until the current triangle incident to $\mathit{q}$ is intersecting with the $\overrightarrow{\mathit{qp}}$ vector. Once $\mathit{t}$ is intersecting with $\overrightarrow{\mathit{qp}}$, we test on witch edge $\mathit{e}$ the vector $\overrightarrow{\mathit{qp}}$ is going out of $\mathit{t}$ using the orientation predicate (Eq. \ref{predicate}). We move to the neighbour triangle of $\mathit{t}$ that share the edge $\mathit{e}$ and test again, in the new triangle, which edge is crossed by the $\overrightarrow{\mathit{qp}}$. The walk stops when no edge crossing $\overrightarrow{\mathit{qp}}$ is found (Fig \ref{fig:straightwalkb}).
 
 \begin{equation} \label{predicate}
 \mathit{orientation(\alpha, \beta, \gamma)} ~=~\mathit{sign} \left( \left\lvert
@@ -134,7 +134,7 @@ For more details, please refer to the scientific article \textit{Walk in a Trian
 
 \section{Usage}
 
-An example \texttt{WalkInTriangulation.cxx} is provided with the sources and is used for the tests. The functor is templated on 2 dimensions \textit{itk::QuadEdgeMesh}, if higher dimensions is used they will be silenced in the processed. The initialisation triangle is optional, if not specified the algorithm will start at the first triangle index of the mesh.
+An example \texttt{WalkInTriangulation.cxx} is provided with the sources and is used for the tests. The functor is templated on 2 dimensions \textit{itk::QuadEdgeMesh}, if higher dimensions is used they will be silenced in the process. The initialisation triangle is optional, if not specified the algorithm will start at the first triangle of the mesh's index list.
 \begin{verbatim}
 itk::VectorContainer<unsigned int, TCellIdentifier>::Pointer
 itk::WalkInTriangulation<TQEMesh>( TQEMeshPointer, TPointType&, TCellIdentifier& )

@@ -1,6 +1,6 @@
 /*=========================================================================
 *
-*		Walking in a Triangulation algorithm implementation
+*    Walking in a Triangulation algorithm implementation
 *   Based on :
 *
 *   Devillers, O. and Pion, S. and Teillaud, M. "Walking in a triangulation",
@@ -29,130 +29,106 @@
 #include "itkQuadEdgeMeshTraits.h"
 #include "itkQuadEdgeMeshPolygonCell.h"
 #include "itkVectorContainer.h"
-#include "itkVTKPolyDataReader.h"
-#include "itkWalkInTriangulationFunctor.h"
-
-#include "vnl/vnl_det.h" 
-#include "vnl/vnl_matrix_fixed.h" 
+#include "itkQuadEdgeMeshEulerOperatorsTestHelper.h"
+ 
+#include "itkWalkInTriangulationFunction.h"
 
 #include <iostream>
 
-
-typedef	double	PixelType;
-const	unsigned int	Dimension = 3;
-
-typedef itk::QuadEdgeMesh< PixelType, Dimension >	QEMeshType;
-
-template< class TMesh >
-std::vector< typename TMesh::PointType > GeneratePointCoordinates( const unsigned int& iN );
-
-template< class TMesh >
-void CreateSquareTriangularMesh( typename TMesh::Pointer mesh );
-
-int main(int argc, char * argv[] )
+int main( int argc, char * argv[] )
 {
-	if (argc != 5) {
+  if( argc != 5 )
+    {
+    if( argc < 5 )
+      {
+      std::cerr<<"Usage "<<std::endl;
+      std::cerr<<argv[0]<<" Mesh DestinationPointX DestinationPointY InitialCellId ( nbIds id1 id2 ... idn )"<<std::endl;
+      return EXIT_FAILURE;
+      }
+    else
+      {
+      if( argc != 6 + atoi( argv[5] ) )
+        {
+        std::cerr << "Usage error " << std::endl;
+        std::cerr << "Yous declared " << argv[5] << " ids but only provide " << argc-6 << std::endl;
+        std::cerr << "Usage " << std::endl;
+        std::cerr << argv[0] << " Mesh DestinationPointX DestinationPointY InitialCellId ( nbIds id1 id2 ... idn )" << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
+    }
 
-		if (argc<5) {
-			std::cerr<<"Usage "<<std::endl;
-			std::cerr<<argv[0]<<" Mesh DestinationPointX DestinationPointY InitialCellId ( nbIds id1 id2 ... idn )"<<std::endl;
-			return EXIT_FAILURE;
-		}
-		else {
-			if (argc != 6 + atoi(argv[5])) {
-				std::cerr<<"Usage error "<<std::endl;
-				std::cerr<<"Yous declared "<<argv[5]<<" ids but only provide "<< argc-6<<std::endl;
-				std::cerr<<"Usage "<<std::endl;
-				std::cerr<<argv[0]<<" Mesh DestinationPointX DestinationPointY InitialCellId ( nbIds id1 id2 ... idn )"<<std::endl;
-				return EXIT_FAILURE;
-			}
-		}
-	}
-
-	// -----------------------------------------------------
-	// Typedef
-	
-	typedef QEMeshType::PointType              PointType;
-	typedef QEMeshType::CellType               CellType;
-	typedef QEMeshType::PointIdentifier        PointIdentifier;
-	typedef QEMeshType::CellIdentifier         CellIdentifier;
-	typedef QEMeshType::PointsContainer        PointsContainer;
-	typedef QEMeshType::CellsContainer         CellsContainer;
-	typedef QEMeshType::PointIdList            PointIdList;
-	typedef QEMeshType::QEType                 QuadEdgeType;
-	typedef QEMeshType::CellsContainerIterator CellsContainerIteratorType;
-	
-	typedef CellType::PointIdConstIterator     PointIdConstIterator;
-	typedef CellType::PointIdIterator          PointIdIterator;
-	typedef CellType::CellAutoPointer          CellAutoPointer;	
-	
-	typedef itk::VectorContainer< unsigned int, unsigned int > VectorContainerType;
-	typedef itk::VTKPolyDataReader< QEMeshType >	MeshReaderType;
-	
-	// -----------------------------------------------------
-	// Initialisation
-			
-	MeshReaderType::Pointer reader = MeshReaderType::New();
-	reader->SetFileName(argv[1]);
-	reader->Update();
-	
-	QEMeshType::Pointer mesh = QEMeshType::New();
-	mesh = reader->GetOutput();
-	
-	std::cout<<"\nNo. of Cells : "<<mesh->GetNumberOfCells()
-	         <<"\nNo. of Edges : "<<mesh->GetNumberOfEdges()
-	         <<"\nNo. of Faces : "<<mesh->GetNumberOfFaces()
+  typedef itk::QuadEdgeMesh< double, 3 >  QEMeshType;
+  typedef QEMeshType::PointType           PointType;
+  typedef QEMeshType::CellIdentifier      CellIdentifier;
+  
+  typedef itk::VectorContainer< unsigned int, unsigned int > VectorContainerType;
+  
+  // -----------------------------------------------------
+  // Initialisation
+      
+  QEMeshType::Pointer mesh = QEMeshType::New();
+  
+  std::cout<<"\nNo. of Cells : "<<mesh->GetNumberOfCells()
+           <<"\nNo. of Edges : "<<mesh->GetNumberOfEdges()
+           <<"\nNo. of Faces : "<<mesh->GetNumberOfFaces()
            <<"\nNo. of Points : "<<mesh->GetNumberOfPoints()<<"\n\n";
 
 
-	// -----------------------------------------------------
-	// WalkInTriangulation Test
-	
-	PointType pts;
-	CellIdentifier cell;
-	
-	pts[0] = atof(argv[2]); 
-	pts[1] = atof(argv[3]); 
-	cell = atoi(argv[4]);
-	
-	VectorContainerType::Pointer resultPath = VectorContainerType::New();
-	resultPath = WalkInTriangulation< QEMeshType >( mesh, pts, cell, true);
-	
-	std::cout<<"The point ("<<pts[0]<<";"<<pts[1]<<") is in the cell id "<<resultPath->GetElement(resultPath->Size()-1)<<std::endl;
-
-	
-	// -----------------------------------------------------
-	// Path Check
-	
-	if (argc > 6) {
-
-		std::cout<<"expected path : ";
-		VectorContainerType::Pointer expectedPath = VectorContainerType::New();
-		for (unsigned int i = 0; i<(unsigned int)atoi(argv[5]); i++) {
-			expectedPath->InsertElement(i,atoi(argv[6+i]));
-			std::cout<<argv[6+i]<<" ";
-		}
-		std::cout<<"\nresult path : ";
-		VectorContainerType::Iterator ite = resultPath->Begin();
-		while (ite!=resultPath->End()) {
-			std::cout<<ite.Value()<<" ";
-			++ite;
-		}
-		std::cout<<std::endl;
-		
-		VectorContainerType::Iterator ite1 = resultPath->Begin();
-		VectorContainerType::Iterator ite2 = expectedPath->Begin();
-		while (ite1 != resultPath->End() && ite2 != expectedPath->End()) {
-			if (ite1.Value() != ite2.Value()) {
-				return EXIT_FAILURE;
-			}
-			++ite1; 
-			++ite2;			
-		}
-		return EXIT_SUCCESS;
-	}
-	else {
-		return EXIT_SUCCESS;
- 	}
+  // -----------------------------------------------------
+  // WalkInTriangulation Test
+  
+  PointType      pts;
+  CellIdentifier cell;
+  
+  pts[0] = atof( argv[2] ); 
+  pts[1] = atof( argv[3] ); 
+  cell   = atoi( argv[4] );
+  
+  VectorContainerType::Pointer resultPath = VectorContainerType::New();
+  WalkInTriangulationFunction< QEMeshType > myFunction;
+  resultPath = myFunction.Evaluate( mesh, pts, cell );
+  
+  std::cout << "The point (" << pts[0] << ";" << pts[1] << ") is in the cell id ";
+  std::cout << resultPath->GetElement( resultPath->Size()-1 ) << std::endl;
+  
+  // -----------------------------------------------------
+  // Path Check
+  
+  if( argc > 6 )
+    {
+    std::cout << "expected path : ";
+    VectorContainerType::Pointer expectedPath = VectorContainerType::New();
+    for( unsigned int i = 0; i < (unsigned int)atoi( argv[5] ); i++ )
+      {
+      expectedPath->InsertElement(i,atoi(argv[6+i]));
+      std::cout << argv[6+i] << " ";
+      }
+    std::cout << "\nresult path : ";
+    VectorContainerType::Iterator ite = resultPath->Begin();
+    while( ite != resultPath->End() )
+      {
+      std::cout << ite.Value() << " ";
+      ++ite;
+      }
+    std::cout << std::endl;
+    
+    VectorContainerType::Iterator ite1 = resultPath->Begin();
+    VectorContainerType::Iterator ite2 = expectedPath->Begin();
+    while( ite1 != resultPath->End() && ite2 != expectedPath->End() )
+      {
+      if( ite1.Value() != ite2.Value() )
+        {
+        return EXIT_FAILURE;
+        }
+      ++ite1; 
+      ++ite2;      
+      }
+    return EXIT_SUCCESS;
+    }
+  else
+    {
+    return EXIT_SUCCESS;
+    }
 }
 

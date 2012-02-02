@@ -6,6 +6,7 @@ find_package( ITK REQUIRED )
 include( ${USE_ITK_FILE} ) 
 
 include_directories( ${PROJECT_SOURCE_DIR}/src )
+include_directories( ${PointInCircle_DIR} )
 
 # add source file (.c .cc .cpp .cxx ...)
 #

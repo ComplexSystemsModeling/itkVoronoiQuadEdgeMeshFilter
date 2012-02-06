@@ -35,9 +35,6 @@
 
 #include "itkPointInCircleGeometricalPredicateFunctor.h"
 
-//#include "vnl/vnl_det.h" 
-//#include "vnl/vnl_matrix_fixed.h" 
-
 #include <iostream>
 
 //------------------------------------------------------------------------------
@@ -179,130 +176,131 @@ public:
       {
       orientationTestCompter += 1;
       do
-       {
-       orientationTestCompter += 1;
-
-       // l = r
-       pointIdC = pointIdB;
-       pointC = pointB;
-
-       // t = neighbour( t through qr )
-       if( myMesh->FindEdge( pointIdQ, pointIdB )->IsAtBorder() )
-         {
-         myCellIndex = -1; 
-         break;
-         }
-       else
-         {
-         myOldCellIndex = myCellIndex;
-         typename QuadEdgeType::DualOriginRefType rightCell = myMesh->FindEdge( pointIdQ, pointIdB )->GetRight();
-         typename QuadEdgeType::DualOriginRefType leftCell = myMesh->FindEdge( pointIdQ, pointIdB )->GetLeft();
-         if( leftCell == myCellIndex )
-           {
-           myCellIndex = rightCell;
-           }
-         else
-           {
-           myCellIndex = leftCell;
-           }
-         }
-       path->InsertElement(triangleVisitedCompter,myCellIndex);
-       triangleVisitedCompter+=1;
-
-       // r = vertex of t, r!=q, r!=l
-       if( myMesh->GetCell( myCellIndex, myCellPointer) )
-         {
-         PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
-         pointIdB = *pointIdIterator;
-         myMesh->GetPoint( *pointIdIterator, &pointB );
-         pointIdIterator++;
-         while( pointIdB == pointIdC || pointIdB == pointIdQ )
-           {
-           if( pointIdIterator != myCellPointer->PointIdsEnd() )
-             {
-             pointIdB = *pointIdIterator;
-             myMesh->GetPoint( *pointIdIterator, &pointB );
-             pointIdIterator++;
-             }
-           }
-         }
-       }
-     while ( orient2d( pointB, pointQ, destination ) > 0 );
-     }
-
-  // End of initialisation step
-  // Q-destination vector has B on its right and C on its left
-  while( orient2d( destination, pointB, pointC ) < 0 )
-    {
-    orientationTestCompter += 1;
-
-    // t = neighbour( t through rl )
-    if( myMesh->FindEdge( pointIdB, pointIdC )->IsAtBorder() )
-      {
-      myCellIndex = -1; 
-      break;
-      }
-    else
-      {
-      myOldCellIndex = myCellIndex;
-      typename QuadEdgeType::DualOriginRefType rightCell = myMesh->FindEdge( pointIdB, pointIdC )->GetRight();
-      typename QuadEdgeType::DualOriginRefType leftCell = myMesh->FindEdge( pointIdB, pointIdC )->GetLeft();
-      if( leftCell == myCellIndex )
         {
-        myCellIndex = rightCell;
+        orientationTestCompter += 1;
+ 
+        // l = r
+        pointIdC = pointIdB;
+        pointC = pointB;
+ 
+        // t = neighbour( t through qr )
+        if( myMesh->FindEdge( pointIdQ, pointIdB )->IsAtBorder() )
+          {
+          myCellIndex = -1; 
+          break;
+          }
+        else
+          {
+          myOldCellIndex = myCellIndex;
+          typename QuadEdgeType::DualOriginRefType rightCell = myMesh->FindEdge( pointIdQ, pointIdB )->GetRight();
+          typename QuadEdgeType::DualOriginRefType leftCell = myMesh->FindEdge( pointIdQ, pointIdB )->GetLeft();
+          if( leftCell == myCellIndex )
+            {
+            myCellIndex = rightCell;
+            }
+          else
+            {
+            myCellIndex = leftCell;
+            }
+          }
+        path->InsertElement(triangleVisitedCompter,myCellIndex);
+        triangleVisitedCompter+=1;
+ 
+        // r = vertex of t, r!=q, r!=l
+        if( myMesh->GetCell( myCellIndex, myCellPointer) )
+          {
+          PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
+          pointIdB = *pointIdIterator;
+          myMesh->GetPoint( *pointIdIterator, &pointB );
+          pointIdIterator++;
+          while( pointIdB == pointIdC || pointIdB == pointIdQ )
+            {
+            if( pointIdIterator != myCellPointer->PointIdsEnd() )
+              {
+              pointIdB = *pointIdIterator;
+              myMesh->GetPoint( *pointIdIterator, &pointB );
+              pointIdIterator++;
+              }
+            }
+          }
+        }
+      while ( orient2d( pointB, pointQ, destination ) > 0 );
+      }
+
+    // End of initialisation step
+    // Q-destination vector has B on its right and C on its left
+    while( orient2d( destination, pointB, pointC ) < 0 )
+      {
+      orientationTestCompter += 1;
+
+      // t = neighbour( t through rl )
+      if( myMesh->FindEdge( pointIdB, pointIdC )->IsAtBorder() )
+        {
+        myCellIndex = -1; 
+        break;
         }
       else
         {
-        myCellIndex = leftCell;
-        }
-      }
-    path->InsertElement(triangleVisitedCompter,myCellIndex);
-    triangleVisitedCompter+=1;
-
-    // s = vertex of t, s!=r, s!=l
-    if( myMesh->GetCell( myCellIndex, myCellPointer) )
-      {
-      PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
-      pointIdA = *pointIdIterator;
-      myMesh->GetPoint( *pointIdIterator, &pointA );
-      pointIdIterator++;
-      while( pointIdA == pointIdB || pointIdA == pointIdC )
-        {
-        if( pointIdIterator != myCellPointer->PointIdsEnd() )
+        myOldCellIndex = myCellIndex;
+        typename QuadEdgeType::DualOriginRefType rightCell = myMesh->FindEdge( pointIdB, pointIdC )->GetRight();
+        typename QuadEdgeType::DualOriginRefType leftCell = myMesh->FindEdge( pointIdB, pointIdC )->GetLeft();
+        if( leftCell == myCellIndex )
           {
-          pointIdA = *pointIdIterator;
-          myMesh->GetPoint( *pointIdIterator, &pointA );
-          pointIdIterator++;
+          myCellIndex = rightCell;
+          }
+        else
+          {
+          myCellIndex = leftCell;
           }
         }
-      }
-    if( orient2d( pointA, pointQ, destination ) < 0 )
-      {
-      orientationTestCompter += 1;
+      path->InsertElement(triangleVisitedCompter,myCellIndex);
+      triangleVisitedCompter+=1;
 
-      // r = s
-      pointIdB = pointIdA;
-      pointB = pointA;
-      }
-    else
-      {
-      orientationTestCompter += 1;
+      // s = vertex of t, s!=r, s!=l
+      if( myMesh->GetCell( myCellIndex, myCellPointer) )
+        {
+        PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
+        pointIdA = *pointIdIterator;
+        myMesh->GetPoint( *pointIdIterator, &pointA );
+        pointIdIterator++;
+        while( pointIdA == pointIdB || pointIdA == pointIdC )
+          {
+          if( pointIdIterator != myCellPointer->PointIdsEnd() )
+            {
+            pointIdA = *pointIdIterator;
+            myMesh->GetPoint( *pointIdIterator, &pointA );
+            pointIdIterator++;
+            }
+          }
+        }
+      if( orient2d( pointA, pointQ, destination ) < 0 )
+        {
+        orientationTestCompter += 1;
 
-      // l = s
-      pointIdC = pointIdA;
-      pointC = pointA;
+        // r = s
+        pointIdB = pointIdA;
+        pointB = pointA;
+        }
+      else
+        {
+        orientationTestCompter += 1;
+
+        // l = s
+        pointIdC = pointIdA;
+        pointC = pointA;
+        }
       }
     }
-  }
-else
-  {
-  myCellIndex = -2;
+  else
+    {
+    myCellIndex = -2;
 
-  path->InsertElement(triangleVisitedCompter,myCellIndex);
-  triangleVisitedCompter+=1;
-  }
+    path->InsertElement(triangleVisitedCompter,myCellIndex);
+    triangleVisitedCompter+=1;
+    }
 
-return path;
-}
+  return path;
+  }
 };
+
 #endif // __itkWalkInTriangulation_h__

@@ -60,7 +60,9 @@ class WalkInTriangulationFunction: public itk::QuadEdgeMeshFunctionBase< TMeshTy
   typedef typename CellType::PointIdIterator          PointIdIterator;
   typedef typename CellType::CellAutoPointer          CellAutoPointer;
 
-  typedef itk::VectorContainer<unsigned int,unsigned int> VectorContainerType;
+  typedef typename QuadEdgeType::DualOriginRefType DualOriginRefType;
+
+  typedef itk::VectorContainer< unsigned int, unsigned int > VectorContainerType;
 
 public:
   TOutputType Evaluate( 
@@ -114,8 +116,8 @@ public:
     myMesh->GetPoint( *pointIdIterator, &pointC );
     PointIdentifier pointIdA;
 
-    path->InsertElement(triangleVisitedCompter,myCellIndex);
-    triangleVisitedCompter+=1;
+    path->InsertElement( triangleVisitedCompter, myCellIndex );
+    triangleVisitedCompter += 1;
 
     if( orient2d( pointB, pointQ, destination ) < 0 )
       {
@@ -132,14 +134,15 @@ public:
         // t = neighbour( t through ql )
         if( myMesh->FindEdge( pointIdQ, pointIdC )->IsAtBorder() )
           {
+          throw "Point is outside the mesh structure.";
           myCellIndex = -1; 
           break;
           }
         else
           {
           myOldCellIndex = myCellIndex;
-          typename QuadEdgeType::DualOriginRefType rightCell = myMesh->FindEdge( pointIdQ, pointIdC )->GetRight();
-          typename QuadEdgeType::DualOriginRefType leftCell = myMesh->FindEdge( pointIdQ, pointIdC )->GetLeft();
+          DualOriginRefType rightCell = myMesh->FindEdge( pointIdQ, pointIdC )->GetRight();
+          DualOriginRefType leftCell = myMesh->FindEdge( pointIdQ, pointIdC )->GetLeft();
           if( leftCell == myCellIndex )
             {
             myCellIndex = rightCell;
@@ -186,14 +189,15 @@ public:
         // t = neighbour( t through qr )
         if( myMesh->FindEdge( pointIdQ, pointIdB )->IsAtBorder() )
           {
+	  throw "Point is outside of the mesh structure";
           myCellIndex = -1; 
           break;
           }
         else
           {
           myOldCellIndex = myCellIndex;
-          typename QuadEdgeType::DualOriginRefType rightCell = myMesh->FindEdge( pointIdQ, pointIdB )->GetRight();
-          typename QuadEdgeType::DualOriginRefType leftCell = myMesh->FindEdge( pointIdQ, pointIdB )->GetLeft();
+          DualOriginRefType rightCell = myMesh->FindEdge( pointIdQ, pointIdB )->GetRight();
+          DualOriginRefType leftCell = myMesh->FindEdge( pointIdQ, pointIdB )->GetLeft();
           if( leftCell == myCellIndex )
             {
             myCellIndex = rightCell;
@@ -203,8 +207,8 @@ public:
             myCellIndex = leftCell;
             }
           }
-        path->InsertElement(triangleVisitedCompter,myCellIndex);
-        triangleVisitedCompter+=1;
+        path->InsertElement( triangleVisitedCompter, myCellIndex );
+        triangleVisitedCompter += 1;
  
         // r = vertex of t, r!=q, r!=l
         if( myMesh->GetCell( myCellIndex, myCellPointer) )
@@ -236,14 +240,15 @@ public:
       // t = neighbour( t through rl )
       if( myMesh->FindEdge( pointIdB, pointIdC )->IsAtBorder() )
         {
+	throw "Point is outside of the mesh structure";
         myCellIndex = -1; 
         break;
         }
       else
         {
         myOldCellIndex = myCellIndex;
-        typename QuadEdgeType::DualOriginRefType rightCell = myMesh->FindEdge( pointIdB, pointIdC )->GetRight();
-        typename QuadEdgeType::DualOriginRefType leftCell = myMesh->FindEdge( pointIdB, pointIdC )->GetLeft();
+        DualOriginRefType rightCell = myMesh->FindEdge( pointIdB, pointIdC )->GetRight();
+        DualOriginRefType leftCell = myMesh->FindEdge( pointIdB, pointIdC )->GetLeft();
         if( leftCell == myCellIndex )
           {
           myCellIndex = rightCell;
@@ -253,8 +258,8 @@ public:
           myCellIndex = leftCell;
           }
         }
-      path->InsertElement(triangleVisitedCompter,myCellIndex);
-      triangleVisitedCompter+=1;
+      path->InsertElement( triangleVisitedCompter, myCellIndex );
+      triangleVisitedCompter += 1;
 
       // s = vertex of t, s!=r, s!=l
       if( myMesh->GetCell( myCellIndex, myCellPointer) )
@@ -293,10 +298,11 @@ public:
     }
   else
     {
+    throw "The starting triangle does not exist";
     myCellIndex = -2;
 
-    path->InsertElement(triangleVisitedCompter,myCellIndex);
-    triangleVisitedCompter+=1;
+    path->InsertElement( triangleVisitedCompter, myCellIndex );
+    triangleVisitedCompter += 1;
     }
 
   return path;

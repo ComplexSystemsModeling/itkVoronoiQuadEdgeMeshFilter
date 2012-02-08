@@ -18,7 +18,7 @@ set( WalkInTriangulation_src
 # add header file (.h .hxx .txx ...)
 #
 set( WalkInTriangulation_header
-  src/itkWalkInTriangulationFunctor.h
+  src/itkWalkInTriangulationFunction.h
   )
 
 # if generat by Xcode add headers to executable

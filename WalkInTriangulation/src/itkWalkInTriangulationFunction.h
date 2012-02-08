@@ -1,26 +1,25 @@
-/*=========================================================================
- *
- * Walking in a Triangulation algorithm implementation
- *   Based on :
- *
- *   Devillers, O. and Pion, S. and Teillaud, M. "Walking in a triangulation",
- *   Proceedings of the seventeenth annual symposium on Computational geometry,
- *   pages 106-114, 2001
- *
- *   Implementation for ITK by Stéphane Ulysse Rigaud
- *   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR
- *   Singapore
- *
- *   Input double  X coordinate of the destination point in the mesh
- *         double  Y coordinate of the destination point in the mesh
- *         unsigned int I starting cell id
- *
- *   Output int I index of the cell that contain the destination point
- *          if I = -1, destination point is outside the mesh
- *          if I = -2, errors was encounter
- *   NOTE ALEX: no -1 or -2: throw an exception*
- *
- *=========================================================================*/
+/*================================================================================
+ *                                                                               *
+ * Walking in a Triangulation algorithm implementation                           *
+ *                                                                               *
+ *   Based on :                                                                  *
+ *   Devillers, O. and Pion, S. and Teillaud, M. "Walking in a triangulation",   *
+ *   Proceedings of the seventeenth annual symposium on Computational geometry,  *
+ *   pages 106-114, 2001                                                         *
+ *                                                                               *
+ *   Implementation for ITK by Stéphane Ulysse Rigaud                            *
+ *   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR                           *
+ *   Singapore                                                                   *
+ *                                                                               *
+ *   Input: itk::Mesh*          input mesh                                       *
+ *          Mesh::PointType&    point coordinate                                 *
+ *          unsigned int        starting cell id                                 *
+ *                                                                               *
+ *   Output: itk::vectorContainer  list of visited triangle index                *
+ *                                                                               *
+ *   NOTE ALEX: no -1 or -2: throw an exception                                  *
+ *                                                                               *
+ *===============================================================================*/
 
 #ifndef __itkWalkInTriangulationFunction_h__
 #define __itkWalkInTriangulationFunction_h__
@@ -37,15 +36,17 @@
 
 #include <iostream>
 
-//------------------------------------------------------------------------------
-// WalkInTriangulation Functor
 //
+// WalkInTriangulation Function
+//
+
 template<
   class    TMeshType, 
   typename TOutputType = itk::VectorContainer< unsigned int, unsigned int >::Pointer
   >
 class WalkInTriangulationFunction: public itk::QuadEdgeMeshFunctionBase< TMeshType, TOutputType >
 {
+ 
   typedef typename TMeshType::PointType              PointType;
   typedef typename TMeshType::CellType               CellType;
   typedef typename TMeshType::PointIdentifier        PointIdentifier;
@@ -65,16 +66,18 @@ class WalkInTriangulationFunction: public itk::QuadEdgeMeshFunctionBase< TMeshTy
   typedef itk::VectorContainer< unsigned int, unsigned int > VectorContainerType;
 
 public:
+ 
   TOutputType Evaluate( 
     TMeshType* myMesh,
     const PointType& myPts, 
     const CellIdentifier& myCell = -1
     )
   {
-
-  // -----------------------------------------------------
+  
+	// 
   // Initialisation
-
+  //
+	 
   CellAutoPointer             myCellPointer;  
   CellsContainer              *myCellsContainer = myMesh->GetCells();
   CellsContainerIteratorType  myCellIterator;
@@ -91,15 +94,16 @@ public:
     { 
     myCellIndex = myCell ;
     }
-  else
-    { // Default start
+  else // Default start
+    { 
     myCellIterator = myCellsContainer->Begin();
     myCellIndex = myCellIterator.Index();
     }
-
-  // -----------------------------------------------------
+  
+	// 
   // WalkInTriangulation Algorithm
-
+  //
+	 
   if( myMesh->GetCell( myCellIndex, myCellPointer ) )
     { 
 
@@ -127,11 +131,9 @@ public:
         {
         orientationTestCompter += 1;
 
-        // r = l
         pointIdB = pointIdC;
         pointB = pointC;
 
-        // t = neighbour( t through ql )
         if( myMesh->FindEdge( pointIdQ, pointIdC )->IsAtBorder() )
           {
           throw "Point is outside the mesh structure.";
@@ -156,7 +158,6 @@ public:
         path->InsertElement( triangleVisitedCompter, myCellIndex );
         triangleVisitedCompter += 1;
 
-        // l = vertex of t, l!=q, l!=r
         if( myMesh->GetCell( myCellIndex, myCellPointer) )
           {
           PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
@@ -182,14 +183,12 @@ public:
         {
         orientationTestCompter += 1;
  
-        // l = r
         pointIdC = pointIdB;
         pointC = pointB;
  
-        // t = neighbour( t through qr )
         if( myMesh->FindEdge( pointIdQ, pointIdB )->IsAtBorder() )
           {
-	  throw "Point is outside of the mesh structure";
+					throw "Point is outside of the mesh structure";
           myCellIndex = -1; 
           break;
           }
@@ -210,7 +209,6 @@ public:
         path->InsertElement( triangleVisitedCompter, myCellIndex );
         triangleVisitedCompter += 1;
  
-        // r = vertex of t, r!=q, r!=l
         if( myMesh->GetCell( myCellIndex, myCellPointer) )
           {
           PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
@@ -231,16 +229,13 @@ public:
       while ( orient2d( pointB, pointQ, destination ) > 0 );
       }
 
-    // End of initialisation step
-    // Q-destination vector has B on its right and C on its left
     while( orient2d( destination, pointB, pointC ) < 0 )
       {
       orientationTestCompter += 1;
 
-      // t = neighbour( t through rl )
       if( myMesh->FindEdge( pointIdB, pointIdC )->IsAtBorder() )
         {
-	throw "Point is outside of the mesh structure";
+				throw "Point is outside of the mesh structure";
         myCellIndex = -1; 
         break;
         }
@@ -261,7 +256,6 @@ public:
       path->InsertElement( triangleVisitedCompter, myCellIndex );
       triangleVisitedCompter += 1;
 
-      // s = vertex of t, s!=r, s!=l
       if( myMesh->GetCell( myCellIndex, myCellPointer) )
         {
         PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
@@ -281,16 +275,12 @@ public:
       if( orient2d( pointA, pointQ, destination ) < 0 )
         {
         orientationTestCompter += 1;
-
-        // r = s
         pointIdB = pointIdA;
         pointB = pointA;
         }
       else
         {
         orientationTestCompter += 1;
-
-        // l = s
         pointIdC = pointIdA;
         pointC = pointA;
         }
@@ -300,13 +290,13 @@ public:
     {
     throw "The starting triangle does not exist";
     myCellIndex = -2;
-
     path->InsertElement( triangleVisitedCompter, myCellIndex );
     triangleVisitedCompter += 1;
     }
 
   return path;
   }
+ 
 };
 
-#endif // __itkWalkInTriangulation_h__
+#endif // __itkWalkInTriangulationFunction_h__

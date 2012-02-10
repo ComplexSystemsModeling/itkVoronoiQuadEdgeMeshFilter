@@ -10,6 +10,7 @@
  *   Implementation for ITK by Stéphane Ulysse Rigaud                            *
  *   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR                           *
  *   Singapore                                                                   *
+ *   http://www.ipal.cnrs.fr                                                     * 
  *                                                                               *
  *   Input: itk::Mesh*          input mesh                                       *
  *          Mesh::PointType&    point coordinate                                 *
@@ -17,7 +18,6 @@
  *                                                                               *
  *   Output: itk::vectorContainer  list of visited triangle index                *
  *                                                                               *
- *   NOTE ALEX: no -1 or -2: throw an exception                                  *
  *                                                                               *
  *===============================================================================*/
 
@@ -36,17 +36,30 @@
 
 #include <iostream>
 
+namespace itk
+{
+
 //
 // WalkInTriangulation Function
 //
 
 template<
   class    TMeshType, 
-  typename TOutputType = itk::VectorContainer< unsigned int, unsigned int >::Pointer
+  typename TOutputType = itk::VectorContainer< unsigned int, int >::Pointer
   >
-class WalkInTriangulationFunction: public itk::QuadEdgeMeshFunctionBase< TMeshType, TOutputType >
+class WalkInTriangulationFunction: public QuadEdgeMeshFunctionBase< TMeshType, TOutputType >
 {
- 
+
+public:
+
+  typedef WalkInTriangulationFunction                         Self;
+  typedef QuadEdgeMeshFunctionBase< TMeshType, TOutputType >  Superclass;
+  typedef SmartPointer< Self >                                Pointer;
+  typedef SmartPointer< const Self >                          ConstPointer;
+
+  itkNewMacro( WalkInTriangulationFunction );
+  itkTypeMacro( WalkInTriangulationFunction, QuadEdgeMeshFunctionBase );
+
   typedef typename TMeshType::PointType              PointType;
   typedef typename TMeshType::CellType               CellType;
   typedef typename TMeshType::PointIdentifier        PointIdentifier;
@@ -63,10 +76,8 @@ class WalkInTriangulationFunction: public itk::QuadEdgeMeshFunctionBase< TMeshTy
 
   typedef typename QuadEdgeType::DualOriginRefType DualOriginRefType;
 
-  typedef itk::VectorContainer< unsigned int, unsigned int > VectorContainerType;
+  typedef VectorContainer< unsigned int, int > VectorContainerType;
 
-public:
- 
   TOutputType Evaluate( 
     TMeshType* myMesh,
     const PointType& myPts, 
@@ -74,7 +85,7 @@ public:
     )
   {
   
-	// 
+  // 
   // Initialisation
   //
 	 
@@ -100,7 +111,7 @@ public:
     myCellIndex = myCellIterator.Index();
     }
   
-	// 
+  // 
   // WalkInTriangulation Algorithm
   //
 	 
@@ -123,11 +134,11 @@ public:
     path->InsertElement( triangleVisitedCompter, myCellIndex );
     triangleVisitedCompter += 1;
 
-    if( orient2d( pointB, pointQ, destination ) < 0 )
+    if( OrientationTest( pointB, pointQ, destination ) < 0 )
       {
       orientationTestCompter += 1;
 
-      while( orient2d( pointC, pointQ, destination ) < 0 )
+      while( OrientationTest( pointC, pointQ, destination ) < 0 )
         {
         orientationTestCompter += 1;
 
@@ -188,7 +199,7 @@ public:
  
         if( myMesh->FindEdge( pointIdQ, pointIdB )->IsAtBorder() )
           {
-					throw "Point is outside of the mesh structure";
+	  throw "Point is outside of the mesh structure";
           myCellIndex = -1; 
           break;
           }
@@ -226,16 +237,16 @@ public:
             }
           }
         }
-      while ( orient2d( pointB, pointQ, destination ) > 0 );
+      while ( OrientationTest( pointB, pointQ, destination ) > 0 );
       }
 
-    while( orient2d( destination, pointB, pointC ) < 0 )
+    while( OrientationTest( destination, pointB, pointC ) < 0 )
       {
       orientationTestCompter += 1;
 
       if( myMesh->FindEdge( pointIdB, pointIdC )->IsAtBorder() )
         {
-				throw "Point is outside of the mesh structure";
+	throw "Point is outside of the mesh structure";
         myCellIndex = -1; 
         break;
         }
@@ -272,7 +283,7 @@ public:
             }
           }
         }
-      if( orient2d( pointA, pointQ, destination ) < 0 )
+      if( OrientationTest( pointA, pointQ, destination ) < 0 )
         {
         orientationTestCompter += 1;
         pointIdB = pointIdA;
@@ -296,7 +307,22 @@ public:
 
   return path;
   }
- 
+
+ protected:
+
+  WalkInTriangulationFunction()
+  {}
+
+  ~WalkInTriangulationFunction()
+  {}
+
+ private:
+
+  WalkInTriangulationFunction( const Self & ); // purposely not implemented
+  void operator=( const Self & );              // purposely not implemented
+
 };
+
+} // namespace itk
 
 #endif // __itkWalkInTriangulationFunction_h__

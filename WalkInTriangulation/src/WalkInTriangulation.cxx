@@ -1,28 +1,24 @@
-/*=========================================================================
-*
-*    Walking in a Triangulation algorithm implementation
-*   Based on :
-*
-*   Devillers, O. and Pion, S. and Teillaud, M. "Walking in a triangulation",
-*   Proceedings of the seventeenth annual symposium on Computational geometry,
-*   pages 106-114, 2001
-*
-*   Implementation for ITK by Stéphane Ulysse Rigaud
-*   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR
-*   Singapore
-*
-*   Input string  Mtk mesh name
-*         double  X coordinate of the destination point in the mesh
-*         double  Y coordinate of the destination point in the mesh
-*         unsigned int Starting cell id
-*
-*   Output int I index of the cell that contain the destination point
-*          if I = -1, destination point is outside the mesh
-*
-*   TODO => Validation test
-*        => Functorise the implementation
-*
-*=========================================================================*/
+/*===============================================================================
+*                                                                               *
+* Walking in a Triangulation algorithm implementation test                      *
+*                                                                               *
+*   Based on:                                                                   *
+*   Devillers, O. and Pion, S. and Teillaud, M. "Walking in a triangulation",   *
+*   Proceedings of the seventeenth annual symposium on Computational geometry,  *
+*   pages 106-114, 2001                                                         *
+*                                                                               *
+*   Implementation for ITK by Stéphane Ulysse Rigaud                            *
+*   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR                           *
+*   Singapore                                                                   *
+*   http://www.ipal.cnrs.fr                                                     *
+*                                                                               *
+*   Input: double       X coordinate of the destination point                   *
+*          double       Y coordinate of the destination point                   *
+*          int          Starting cell id                                        *
+*          int          path size for validation (optional)                     *
+*          N int        expected size (optional)                                *
+*                                                                               *
+*===============================================================================*/
 
 #include "itkPointSet.h"
 #include "itkQuadEdgeMesh.h"
@@ -37,22 +33,23 @@
 
 int main( int argc, char * argv[] )
 {
-  if( argc != 5 )
+
+  if( argc != 4 )
     {
-    if( argc < 5 )
+    if( argc < 4 )
       {
       std::cerr<<"Usage "<<std::endl;
-      std::cerr<<argv[0]<<" Mesh DestinationPointX DestinationPointY InitialCellId ( nbIds id1 id2 ... idn )"<<std::endl;
+      std::cerr<<argv[0]<<" DestinationPointX DestinationPointY InitialCellId ( nbIds id1 id2 ... idn )"<<std::endl;
       return EXIT_FAILURE;
       }
     else
       {
-      if( argc != 6 + atoi( argv[5] ) )
+      if( argc != 5 + atoi( argv[4] ) )
         {
         std::cerr << "Usage error " << std::endl;
-        std::cerr << "Yous declared " << argv[5] << " ids but only provide " << argc-6 << std::endl;
+        std::cerr << "Yous declared " << argv[4] << " ids but only provide " << argc-5 << std::endl;
         std::cerr << "Usage " << std::endl;
-        std::cerr << argv[0] << " Mesh DestinationPointX DestinationPointY InitialCellId ( nbIds id1 id2 ... idn )" << std::endl;
+        std::cerr << argv[0] << " DestinationPointX DestinationPointY InitialCellId ( nbIds id1 id2 ... idn )" << std::endl;
         return EXIT_FAILURE;
         }
       }
@@ -62,13 +59,14 @@ int main( int argc, char * argv[] )
   typedef QEMeshType::PointType           PointType;
   typedef QEMeshType::CellIdentifier      CellIdentifier;
   
-  typedef itk::VectorContainer< unsigned int, unsigned int > VectorContainerType;
+  typedef itk::VectorContainer< unsigned int, int > VectorContainerType;
   
   // -----------------------------------------------------
-  // Initialisation
+  // Initialisation mesh
       
   QEMeshType::Pointer mesh = QEMeshType::New();
-  
+  CreateSquareTriangularMesh< QEMeshType >( mesh );
+
   std::cout<<"\nNo. of Cells : "<<mesh->GetNumberOfCells()
            <<"\nNo. of Edges : "<<mesh->GetNumberOfEdges()
            <<"\nNo. of Faces : "<<mesh->GetNumberOfFaces()
@@ -76,33 +74,42 @@ int main( int argc, char * argv[] )
 
 
   // -----------------------------------------------------
-  // WalkInTriangulation Test
+  // WalkInTriangulation 
   
   PointType      pts;
   CellIdentifier cell;
   
-  pts[0] = atof( argv[2] ); 
-  pts[1] = atof( argv[3] ); 
-  cell   = atoi( argv[4] );
+  pts[0] = atof( argv[1] ); 
+  pts[1] = atof( argv[2] ); 
+  cell   = atoi( argv[3] );
   
   VectorContainerType::Pointer resultPath = VectorContainerType::New();
-  WalkInTriangulationFunction< QEMeshType > myFunction;
-  resultPath = myFunction.Evaluate( mesh, pts, cell );
-  
+  itk::WalkInTriangulationFunction< QEMeshType >::Pointer myFunction = 
+	  itk::WalkInTriangulationFunction< QEMeshType >::New();
+ 
+  try
+    { 
+    resultPath = myFunction->Evaluate( mesh, pts, cell );
+    }
+  catch( char** e )
+    {
+    std::cerr << e << std::endl;
+    }
+
   std::cout << "The point (" << pts[0] << ";" << pts[1] << ") is in the cell id ";
   std::cout << resultPath->GetElement( resultPath->Size()-1 ) << std::endl;
   
   // -----------------------------------------------------
-  // Path Check
+  // Validation 
   
-  if( argc > 6 )
+  if( argc > 5 )
     {
     std::cout << "expected path : ";
     VectorContainerType::Pointer expectedPath = VectorContainerType::New();
-    for( unsigned int i = 0; i < (unsigned int)atoi( argv[5] ); i++ )
+    for( unsigned int i = 0; i < (unsigned int)atoi( argv[4] ); i++ )
       {
-      expectedPath->InsertElement(i,atoi(argv[6+i]));
-      std::cout << argv[6+i] << " ";
+      expectedPath->InsertElement(i,atoi(argv[5+i]));
+      std::cout << argv[5+i] << " ";
       }
     std::cout << "\nresult path : ";
     VectorContainerType::Iterator ite = resultPath->Begin();
@@ -115,16 +122,23 @@ int main( int argc, char * argv[] )
     
     VectorContainerType::Iterator ite1 = resultPath->Begin();
     VectorContainerType::Iterator ite2 = expectedPath->Begin();
-    while( ite1 != resultPath->End() && ite2 != expectedPath->End() )
+    if( resultPath->Size() == expectedPath->Size() )
       {
-      if( ite1.Value() != ite2.Value() )
+      while( ite1 != resultPath->End() && ite2 != expectedPath->End() )
         {
-        return EXIT_FAILURE;
+        if( ite1.Value() != ite2.Value() )
+          {
+          return EXIT_FAILURE;
+          }
+        ++ite1; 
+        ++ite2;      
         }
-      ++ite1; 
-      ++ite2;      
+      return EXIT_SUCCESS;
       }
-    return EXIT_SUCCESS;
+    else
+      {
+      return EXIT_FAILURE;
+      }
     }
   else
     {

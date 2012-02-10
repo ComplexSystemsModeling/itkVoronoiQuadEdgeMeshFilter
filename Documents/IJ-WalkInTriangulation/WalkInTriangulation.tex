@@ -134,7 +134,7 @@ For more details, please refer to the scientific article \textit{Walk in a Trian
 
 \section{Usage}
 
-An example \texttt{WalkInTriangulation.cxx} is provided with the sources and is used for the tests. The functor is templated on 2 dimensions \textit{itk::QuadEdgeMesh}, if higher dimensions is used they will be silenced in the process. The initialisation triangle is optional, if not specified the algorithm will start at the first triangle of the mesh's index list.
+An example \texttt{WalkInTriangulation.cxx} is provided with the sources and is used for the tests. The functor is templated on 2 dimensions \textit{itk::QuadEdgeMesh}, if a higher dimensions mesh is given, only the two first dimension will be used in the process. The initialisation triangle is optional, if not specified the algorithm will start at the first triangle in the cell container.
 \begin{verbatim}
 itk::WalkInTriangulation< TQuadEdgeMesh, 
                           itk::VectorContainer<unsigned int, TCellIdentifier> >

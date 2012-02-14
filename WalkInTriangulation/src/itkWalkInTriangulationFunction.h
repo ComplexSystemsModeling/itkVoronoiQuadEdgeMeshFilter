@@ -81,7 +81,7 @@ public:
   TOutputType Evaluate( 
     TMeshType* myMesh,
     const PointType& myPts, 
-    const CellIdentifier& myCell = -1
+    const CellIdentifier& myCell = 0
     )
   {
   
@@ -101,7 +101,7 @@ public:
 
   VectorContainerType::Pointer path = VectorContainerType::New();
 
-  if( myCell >= 0 )
+  if( myCell > 0 )
     { 
     myCellIndex = myCell ;
     }

@@ -34,7 +34,7 @@
 int main( int argc, char * argv[] )
 {
 
-  if( argc != 4 )
+  if( argc < 3 )
     {
     if( argc < 4 )
       {
@@ -85,7 +85,7 @@ int main( int argc, char * argv[] )
   VectorContainerType::Pointer resultPath = VectorContainerType::New();
   itk::WalkInTriangulationFunction< QEMeshType >::Pointer myFunction = 
 	  itk::WalkInTriangulationFunction< QEMeshType >::New();
- 
+
   try
     { 
     resultPath = myFunction->Evaluate( mesh, pts, cell );

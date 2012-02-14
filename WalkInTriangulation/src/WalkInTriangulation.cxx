@@ -39,7 +39,7 @@ int main( int argc, char * argv[] )
     if( argc < 4 )
       {
       std::cerr<<"Usage "<<std::endl;
-      std::cerr<<argv[0]<<" DestinationPointX DestinationPointY InitialCellId ( nbIds id1 id2 ... idn )"<<std::endl;
+      std::cerr<<argv[0]<<" DestinationPointX DestinationPointY InitialCellId ( nbIds [id1 id2 ... idn] )"<<std::endl;
       return EXIT_FAILURE;
       }
     else
@@ -49,7 +49,7 @@ int main( int argc, char * argv[] )
         std::cerr << "Usage error " << std::endl;
         std::cerr << "Yous declared " << argv[4] << " ids but only provide " << argc-5 << std::endl;
         std::cerr << "Usage " << std::endl;
-        std::cerr << argv[0] << " DestinationPointX DestinationPointY InitialCellId ( nbIds id1 id2 ... idn )" << std::endl;
+        std::cerr << argv[0] << " DestinationPointX DestinationPointY InitialCellId ( nbIds [id1 id2 ... idn] )" << std::endl;
         return EXIT_FAILURE;
         }
       }
@@ -72,7 +72,6 @@ int main( int argc, char * argv[] )
            <<"\nNo. of Faces : "<<mesh->GetNumberOfFaces()
            <<"\nNo. of Points : "<<mesh->GetNumberOfPoints()<<"\n\n";
 
-
   // -----------------------------------------------------
   // WalkInTriangulation 
   
@@ -91,7 +90,7 @@ int main( int argc, char * argv[] )
     { 
     resultPath = myFunction->Evaluate( mesh, pts, cell );
     }
-  catch( char** e )
+  catch( int e )
     {
     std::cerr << e << std::endl;
     }

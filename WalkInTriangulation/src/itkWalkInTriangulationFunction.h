@@ -147,7 +147,7 @@ public:
 
         if( myMesh->FindEdge( pointIdQ, pointIdC )->IsAtBorder() )
           {
-          throw "Point is outside the mesh structure.";
+          throw "The point is out of the mesh\n";
           myCellIndex = -1; 
           break;
           }
@@ -199,7 +199,7 @@ public:
  
         if( myMesh->FindEdge( pointIdQ, pointIdB )->IsAtBorder() )
           {
-	  throw "Point is outside of the mesh structure";
+	  throw "the point is out of the mesh\n";
           myCellIndex = -1; 
           break;
           }
@@ -246,7 +246,7 @@ public:
 
       if( myMesh->FindEdge( pointIdB, pointIdC )->IsAtBorder() )
         {
-	throw "Point is outside of the mesh structure";
+	throw "the point is out of the mesh\n";
         myCellIndex = -1; 
         break;
         }
@@ -299,7 +299,7 @@ public:
     }
   else
     {
-    throw "The starting triangle does not exist";
+    throw "The cell does not exist\n";
     myCellIndex = -2;
     path->InsertElement( triangleVisitedCompter, myCellIndex );
     triangleVisitedCompter += 1;

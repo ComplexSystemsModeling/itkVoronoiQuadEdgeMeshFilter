@@ -147,7 +147,7 @@ public:
 
         if( myMesh->FindEdge( pointIdQ, pointIdC )->IsAtBorder() )
           {
-          throw "The point is out of the mesh\n";
+          throw -1;
           myCellIndex = -1; 
           break;
           }
@@ -199,7 +199,7 @@ public:
  
         if( myMesh->FindEdge( pointIdQ, pointIdB )->IsAtBorder() )
           {
-	  throw "the point is out of the mesh\n";
+	  throw -1;
           myCellIndex = -1; 
           break;
           }
@@ -246,7 +246,7 @@ public:
 
       if( myMesh->FindEdge( pointIdB, pointIdC )->IsAtBorder() )
         {
-	throw "the point is out of the mesh\n";
+	throw -1;
         myCellIndex = -1; 
         break;
         }
@@ -299,7 +299,7 @@ public:
     }
   else
     {
-    throw "The cell does not exist\n";
+    throw -2;
     myCellIndex = -2;
     path->InsertElement( triangleVisitedCompter, myCellIndex );
     triangleVisitedCompter += 1;

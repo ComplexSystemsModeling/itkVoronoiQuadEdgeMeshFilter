@@ -92,7 +92,7 @@ int main( int argc, char * argv[] )
     }
   catch( int e )
     {
-    std::cerr << e << std::endl;
+    std::cerr << "error occured : "<< e << std::endl;
     }
 
   std::cout << "The point (" << pts[0] << ";" << pts[1] << ") is in the cell id ";

@@ -99,6 +99,7 @@ DelaunayRecursiveCriterionEvaluation(
 
   PointIdentifier pA, pB, pC;
   CellIdentifier t1, t2;
+  bool left = false;
   DualOriginRefType neighbourCellIndex;
 
   CellAutoPointer myCellPointer;
@@ -122,9 +123,18 @@ DelaunayRecursiveCriterionEvaluation(
       else
         {
         neighbourCellIndex = myMesh->FindEdge( pA, pB )->GetRight();
+	if( neighbourCellIndex == myCellIndex )
+	  {
+	  neighbourCellIndex = myMesh->FindEdge( pA, pB )->GetLeft();
+	  left = true;
+	  std::cout<<"left triangle selected\n";
+	  }
 	}
       }
     }
+
+  std::cout<< "check cell "<<myCellIndex<<" <> "<<neighbourCellIndex <<" and point "<<myPointIndex<<std::endl;
+
 
   // Test of the delaunay criterion using PointInCircle test function
   // from B. Moreau insigh journal 
@@ -148,12 +158,12 @@ DelaunayRecursiveCriterionEvaluation(
       }
     myMesh->DeleteFace( myCellIndex );
     myMesh->DeleteFace( neighbourCellIndex );
-
-    // We create 2 new cells
+   
     int simpleTriangleCells[6] = 
-    { myPointIndex, pC, pA, 
-      myPointIndex, pB, pC };
-    
+      { myPointIndex, pC, pB, 
+        myPointIndex, pA, pC };
+      
+
     QEPolygonCellType *poly;
     CellAutoPointer cellpointer;
     CellIdentifier cellIndexTab[2];
@@ -309,9 +319,9 @@ DelaunayTriangulation( TInputPointSet* myPointSet )
       std::cout<<"cell "<<t3<<" = "<<pC<<" "<<pA<<" "<<myPointIndex<<std::endl;
 
       // Check Delaunay criterion on the 3 new cell
-      //t1 = DelaunayRecursiveCriterionEvaluation< Mesh >( myMesh, myPointIndex, t1 );
-      //t2 = DelaunayRecursiveCriterionEvaluation< Mesh >( myMesh, myPointIndex, t2 );
-      //t3 = DelaunayRecursiveCriterionEvaluation< Mesh >( myMesh, myPointIndex, t3 );
+      t1 = DelaunayRecursiveCriterionEvaluation< Mesh >( myMesh, myPointIndex, t1 );
+      t2 = DelaunayRecursiveCriterionEvaluation< Mesh >( myMesh, myPointIndex, t2 );
+      t3 = DelaunayRecursiveCriterionEvaluation< Mesh >( myMesh, myPointIndex, t3 );
 
       std::cout<< "new cell id : "<< t1<<" ; "<<t2<<" ; "<<t3<<"\n";
       std::cout << "\nMesh Update\n";

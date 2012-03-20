@@ -48,6 +48,12 @@ target_link_libraries( Delaunay2DExactGeometry
 include( CTest )
 
 add_test( Delaunay2DExactGeometry01
-  Delaunay2DExactGeometry
+  Delaunay2DExactGeometry 2
+  )
+add_test( Delaunay2DExactGeometry02
+  Delaunay2DExactGeometry 10
+  )
+add_test( Delaunay2DExactGeometry03
+  Delaunay2DExactGeometry 20
   )
 

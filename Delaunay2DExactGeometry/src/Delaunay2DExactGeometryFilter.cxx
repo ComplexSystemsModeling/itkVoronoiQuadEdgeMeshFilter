@@ -34,10 +34,10 @@ void CreateDummyTriangle( typename TMesh::Pointer mesh )
   int expectedNumCells = 2;
   int simpleTriangleCells[6] = { 0, 1, 3, 0, 3, 2 };
 
-  double max = std::numeric_limits< double >::max(); 
-  double min = std::numeric_limits< double >::min();
+  double max = std::numeric_limits< double >::infinity(); 
+  double min = std::numeric_limits< double >::infinity() * -1 ;
 
-  min = -10; max = 10;
+  //min = -50000; max = 50000;
 
   typedef typename TMesh::PointType PointType;
   std::vector< PointType > pts( 4 );
@@ -98,6 +98,7 @@ DelaunayRecursiveCriterionEvaluation(
   typedef typename itk::QuadEdgeMeshPolygonCell< CellType >  QEPolygonCellType;
 
   PointIdentifier pA, pB, pC;
+  PointIdentifier p[3];
   CellIdentifier t1, t2;
   bool left = false;
   DualOriginRefType neighbourCellIndex;
@@ -105,44 +106,40 @@ DelaunayRecursiveCriterionEvaluation(
   CellAutoPointer myCellPointer;
   myMesh->GetCell( myCellIndex, myCellPointer );
   PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
-
-  // Get the neighbour cell
-  while( pointIdIterator != myCellPointer->PointIdsEnd() )
+  p[0] = *(pointIdIterator);
+  p[1] = *(++pointIdIterator);
+  p[2] = *(++pointIdIterator);
+  
+  for( int i = 0; i < 3; i++ )
     {
-    pA = *pointIdIterator;
-    pB = *(++pointIdIterator);
-    if( myPointIndex != pA && myPointIndex != pB )
+    if( p[i%3] == myPointIndex )
       {
+      pA = p[(i+1)%3];
+      pB = p[(i+2)%3];	  
       if( myMesh->FindEdge( pA, pB )->IsAtBorder() )
         {
         // Cell at border of the mesh
 	// No possible check of the delaunay criterion
-	std::cout<<"border cell\n";
+	std::cout<<pA<<"-"<<pB<<" is a border edge, it can't be flip\n";
 	return myCellIndex;
 	}
       else
         {
         neighbourCellIndex = myMesh->FindEdge( pA, pB )->GetRight();
-	if( neighbourCellIndex == myCellIndex )
-	  {
-	  neighbourCellIndex = myMesh->FindEdge( pA, pB )->GetLeft();
-	  left = true;
-	  std::cout<<"left triangle selected\n";
-	  }
 	}
       }
     }
-
-  std::cout<< "check cell "<<myCellIndex<<" <> "<<neighbourCellIndex <<" and point "<<myPointIndex<<std::endl;
-
+  
+  PointType myPointCoord = myMesh->GetPoint( myPointIndex );
+  bool flipTest = TestPointInTriangleInMesh< Mesh >( myMesh, neighbourCellIndex, myPointCoord, true );  
+  std::cout<< "we test cell "<<neighbourCellIndex <<" and point "<<myPointIndex<<std::endl;
 
   // Test of the delaunay criterion using PointInCircle test function
   // from B. Moreau insigh journal 
-  PointType myPointCoord = myMesh->GetPoint( myPointIndex );
-  if( TestPointInTriangleInMesh< Mesh >( myMesh, neighbourCellIndex, myPointCoord, true ) )
+  if(flipTest )
     {
    
-    std::cout<<"we flip the edge\n";
+    std::cout<<"The point is inside the circle, we flip the edge\n";
 	    
     // Criterion fail, need to flip the edge
     // We delete the 2 cells
@@ -160,10 +157,10 @@ DelaunayRecursiveCriterionEvaluation(
     myMesh->DeleteFace( neighbourCellIndex );
    
     int simpleTriangleCells[6] = 
-      { myPointIndex, pC, pB, 
-        myPointIndex, pA, pC };
-      
-
+      { myPointIndex, pA, pC, 
+        myPointIndex, pC, pB };
+    
+       
     QEPolygonCellType *poly;
     CellAutoPointer cellpointer;
     CellIdentifier cellIndexTab[2];
@@ -177,7 +174,10 @@ DelaunayRecursiveCriterionEvaluation(
       cellIndexTab[i] = myMesh->FindFirstUnusedCellIndex();
       myMesh->SetCell( cellIndexTab[i], cellpointer ); 
       } 
-    
+   
+    std::cout<<"we create cell "<<cellIndexTab[0]<<"("<< simpleTriangleCells[0]<<"-"<< simpleTriangleCells[1]<<"-"<< simpleTriangleCells[2]<<
+	       ") and cell  "   <<cellIndexTab[1]<<"(" << simpleTriangleCells[3]<<"-"<< simpleTriangleCells[4]<<"-"<< simpleTriangleCells[5]<<")\n";
+ 
     // we check if the 2 new cells respect the criterion
     myCellIndex = DelaunayRecursiveCriterionEvaluation( myMesh, myPointIndex, cellIndexTab[0] ); 
     DelaunayRecursiveCriterionEvaluation( myMesh, myPointIndex, cellIndexTab[1] ); 
@@ -323,7 +323,6 @@ DelaunayTriangulation( TInputPointSet* myPointSet )
       t2 = DelaunayRecursiveCriterionEvaluation< Mesh >( myMesh, myPointIndex, t2 );
       t3 = DelaunayRecursiveCriterionEvaluation< Mesh >( myMesh, myPointIndex, t3 );
 
-      std::cout<< "new cell id : "<< t1<<" ; "<<t2<<" ; "<<t3<<"\n";
       std::cout << "\nMesh Update\n";
       std::cout << "\nNo. of Cells : " << myMesh->GetNumberOfCells()
                 << "\nNo. of Edges : " << myMesh->GetNumberOfEdges()
@@ -343,7 +342,7 @@ DelaunayTriangulation( TInputPointSet* myPointSet )
       write->SetInput( myMesh );
       write->Update();  
 
-      getchar();
+      //getchar();
       }
     else
       {

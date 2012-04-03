@@ -85,8 +85,6 @@ public:
     )
   {
  
-	  std::cout<<"start Walk\n";
-
   // 
   // Initialisation
   //
@@ -119,7 +117,6 @@ public:
 	 
   if( myMesh->GetCell( myCellIndex, myCellPointer ) )
     { 
-	  std::cout<<"\t walk 1\n";
     PointType pointQ, pointA, pointB, pointC;
     PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
 
@@ -135,7 +132,6 @@ public:
 
     path->InsertElement( triangleVisitedCompter, myCellIndex );
     triangleVisitedCompter += 1;
-	  std::cout<<"\t walk 2\n";
     if( OrientationTest( pointB, pointQ, destination ) < 0 )
       {
       orientationTestCompter += 1;
@@ -146,7 +142,6 @@ public:
 
         pointIdB = pointIdC;
         pointB = pointC;
-
         if( myMesh->FindEdge( pointIdQ, pointIdC )->IsAtBorder() )
           {
           throw -1;
@@ -198,7 +193,6 @@ public:
  
         pointIdC = pointIdB;
         pointC = pointB;
- 
         if( myMesh->FindEdge( pointIdQ, pointIdB )->IsAtBorder() )
           {
 	  throw -1;
@@ -241,14 +235,9 @@ public:
         }
       while ( OrientationTest( pointB, pointQ, destination ) > 0 );
       }
-	  std::cout<<"\t walk 3\n";
     while( OrientationTest( destination, pointB, pointC ) < 0 )
       {
       orientationTestCompter += 1;
-std::cout<<"\t\t walk loop 1\n";
-std::cout<<"find edge "<< pointIdC <<" - "<< pointIdB <<"\n";
-std::cout<<"border test "<< myMesh->FindEdge( pointIdC, pointIdB )->IsAtBorder()<<"\n";
-std::cout<<"\t\t\tWalk loop temp \n";
       if( myMesh->FindEdge( pointIdC, pointIdB )->IsAtBorder() )
         {
 	throw -1;
@@ -257,7 +246,6 @@ std::cout<<"\t\t\tWalk loop temp \n";
         }
       else
         {
- std::cout<<"\t\t walk loop 2\n";
         myOldCellIndex = myCellIndex;
         DualOriginRefType rightCell = myMesh->FindEdge( pointIdC, pointIdB )->GetRight();
         DualOriginRefType leftCell = myMesh->FindEdge( pointIdC, pointIdB )->GetLeft();
@@ -272,10 +260,8 @@ std::cout<<"\t\t\tWalk loop temp \n";
         }
       path->InsertElement( triangleVisitedCompter, myCellIndex );
       triangleVisitedCompter += 1;
-std::cout<<"\t\t walk loop 3\n";
       if( myMesh->GetCell( myCellIndex, myCellPointer) )
         {
-		std::cout<<"\t\t walk loop 4\n";
         PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
         pointIdA = *pointIdIterator;
         myMesh->GetPoint( *pointIdIterator, &pointA );
@@ -290,7 +276,6 @@ std::cout<<"\t\t walk loop 3\n";
             }
           }
         }
-      std::cout<<"\t\t walk loop 5\n";
       if( OrientationTest( pointA, pointQ, destination ) < 0 )
         {
         orientationTestCompter += 1;
@@ -303,9 +288,7 @@ std::cout<<"\t\t walk loop 3\n";
         pointIdC = pointIdA;
         pointC = pointA;
         }
-      std::cout<<"\t\t walk loop 6\n";
       }
-	  std::cout<<"\t walk 4\n";
     }
   else
     {
@@ -314,7 +297,6 @@ std::cout<<"\t\t walk loop 3\n";
     path->InsertElement( triangleVisitedCompter, myCellIndex );
     triangleVisitedCompter += 1;
     }
-	  std::cout<<"\t walk 5\n";
   return path;
   }
 

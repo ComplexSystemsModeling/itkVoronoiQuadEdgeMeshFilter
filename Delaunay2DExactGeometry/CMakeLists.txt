@@ -21,7 +21,7 @@ set( Delaunay2DExactGeometry_src
 set( Delaunay2DExactGeometry_header
   ${WalkInTriangulation_DIR}/itkWalkInTriangulationFunction.h
   ${PointInCircle_DIR}/itkPointInCircleGeometricalPredicateFunctor.h
-  src/Delaunay2DExactGeometryFilter.h
+  #src/Delaunay2DExactGeometryFilter.h
   )
 
 # if generat by Xcode add headers to executable

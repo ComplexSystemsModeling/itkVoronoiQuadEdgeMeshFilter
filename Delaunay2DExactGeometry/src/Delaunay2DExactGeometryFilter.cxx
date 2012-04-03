@@ -334,8 +334,8 @@ DelaunayTriangulation( TPointSetType* myPointSet )
 	 
 	 
 	 //myStartingCellIndex = 0; // => error pts out of mesh inside WiT
-	 //myStartingCellIndex = t1; // => error segmentation fault at FindEdge inside WiT
-	 myStartingCellIndex = t2; // => Against all odds it is working
+	 myStartingCellIndex = t1; // => error segmentation fault at FindEdge inside WiT
+	 //myStartingCellIndex = t2; // => Against all odds it is working
    //myStartingCellIndex = t3; // => error pts out of mesh inside WiT
 	 
 	 ++pointIterator;

@@ -84,7 +84,7 @@ public:
     const CellIdentifier& myCell = 0
     )
   {
-  
+ 
   // 
   // Initialisation
   //
@@ -117,7 +117,6 @@ public:
 	 
   if( myMesh->GetCell( myCellIndex, myCellPointer ) )
     { 
-
     PointType pointQ, pointA, pointB, pointC;
     PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
 
@@ -133,7 +132,6 @@ public:
 
     path->InsertElement( triangleVisitedCompter, myCellIndex );
     triangleVisitedCompter += 1;
-
     if( OrientationTest( pointB, pointQ, destination ) < 0 )
       {
       orientationTestCompter += 1;
@@ -144,7 +142,6 @@ public:
 
         pointIdB = pointIdC;
         pointB = pointC;
-
         if( myMesh->FindEdge( pointIdQ, pointIdC )->IsAtBorder() )
           {
           throw -1;
@@ -196,7 +193,6 @@ public:
  
         pointIdC = pointIdB;
         pointC = pointB;
- 
         if( myMesh->FindEdge( pointIdQ, pointIdB )->IsAtBorder() )
           {
 	  throw -1;
@@ -239,12 +235,10 @@ public:
         }
       while ( OrientationTest( pointB, pointQ, destination ) > 0 );
       }
-
     while( OrientationTest( destination, pointB, pointC ) < 0 )
       {
       orientationTestCompter += 1;
-
-      if( myMesh->FindEdge( pointIdB, pointIdC )->IsAtBorder() )
+      if( myMesh->FindEdge( pointIdC, pointIdB )->IsAtBorder() )
         {
 	throw -1;
         myCellIndex = -1; 
@@ -253,8 +247,8 @@ public:
       else
         {
         myOldCellIndex = myCellIndex;
-        DualOriginRefType rightCell = myMesh->FindEdge( pointIdB, pointIdC )->GetRight();
-        DualOriginRefType leftCell = myMesh->FindEdge( pointIdB, pointIdC )->GetLeft();
+        DualOriginRefType rightCell = myMesh->FindEdge( pointIdC, pointIdB )->GetRight();
+        DualOriginRefType leftCell = myMesh->FindEdge( pointIdC, pointIdB )->GetLeft();
         if( leftCell == myCellIndex )
           {
           myCellIndex = rightCell;
@@ -266,7 +260,6 @@ public:
         }
       path->InsertElement( triangleVisitedCompter, myCellIndex );
       triangleVisitedCompter += 1;
-
       if( myMesh->GetCell( myCellIndex, myCellPointer) )
         {
         PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
@@ -304,7 +297,6 @@ public:
     path->InsertElement( triangleVisitedCompter, myCellIndex );
     triangleVisitedCompter += 1;
     }
-
   return path;
   }
 

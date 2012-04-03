@@ -332,6 +332,7 @@ DelaunayTriangulation( TPointSetType* myPointSet )
 	 t2 = DelaunayRecursiveCriterionEvaluation< MeshType >( myMesh, myPointIndex, t2 );
 	 t3 = DelaunayRecursiveCriterionEvaluation< MeshType >( myMesh, myPointIndex, t3 );
 	 
+	 
 	 //myStartingCellIndex = 0; // => error pts out of mesh inside WiT
 	 //myStartingCellIndex = t1; // => error segmentation fault at FindEdge inside WiT
 	 myStartingCellIndex = t2; // => Against all odds it is working

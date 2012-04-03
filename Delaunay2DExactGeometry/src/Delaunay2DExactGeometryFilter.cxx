@@ -15,6 +15,36 @@
 //TEMPORARY
 #include "itkVTKPolyDataWriter.h"
 
+template< class TMeshType >
+void CheckONextLink( typename TMeshType::Pointer mesh )
+{
+  typedef          TMeshType MeshType;
+  typedef typename MeshType::PointType PointType;
+  typedef typename MeshType::PointIdentifier PointIndex;
+  typedef typename MeshType::PointsContainer PointsContainer;
+  typedef typename MeshType::PointsContainerIterator PointsContainerConstIterator;
+  typedef typename MeshType::QEType QuadEdgeType;
+
+  PointsContainer*              myPoints;
+  PointsContainerConstIterator myPointIterator;
+
+  myPoints = mesh->GetPoints();
+  myPointIterator = myPoints->Begin();
+
+  while( myPointIterator != myPoints->End() )
+    {
+    PointType p = myPointIterator.Value();
+    QuadEdgeType* e = p.GetEdge();
+    QuadEdgeType* next = e->GetOnext();
+    while( e != next )
+      {
+      next = next->GetOnext();
+      } 
+    ++myPointIterator;
+    }
+  std::cout<<"coucou \n";
+}
+
 // Create a dummy mesh for triangulation initialisation
 // Mesh points should be at inifinity
 //
@@ -45,8 +75,8 @@ void CreateDummyMesh( typename TMeshType::Pointer mesh, typename TMeshType::Pixe
  
  if( mesh->GetNumberOfPoints() )
  {
-	mesh->Clear();
-	mesh->ClearFreePointAndCellIndexesLists();
+  mesh->Clear();
+  mesh->ClearFreePointAndCellIndexesLists();
  }
  
  int expectedNumPts = 4;
@@ -66,7 +96,7 @@ void CreateDummyMesh( typename TMeshType::Pointer mesh, typename TMeshType::Pixe
  
  for( i = 0; i < expectedNumPts; i++ )
  {
-	mesh->SetPoint( i, pts[i] );
+  mesh->SetPoint( i, pts[i] );
  }
  
  CellAutoPointer cellpointer;
@@ -74,12 +104,12 @@ void CreateDummyMesh( typename TMeshType::Pointer mesh, typename TMeshType::Pixe
  
  for( i = 0; i < expectedNumCells; i++ )
  {
-	poly = new QEPolygonCellType( 3 );
-	cellpointer.TakeOwnership( poly );
-	cellpointer->SetPointId( 0, simpleTriangleCells[i*3] );
-	cellpointer->SetPointId( 1, simpleTriangleCells[i*3+1] );
-	cellpointer->SetPointId( 2, simpleTriangleCells[i*3+2] );
-	mesh->SetCell( i, cellpointer );
+  poly = new QEPolygonCellType( 3 );
+  cellpointer.TakeOwnership( poly );
+  cellpointer->SetPointId( 0, simpleTriangleCells[i*3] );
+  cellpointer->SetPointId( 1, simpleTriangleCells[i*3+1] );
+  cellpointer->SetPointId( 2, simpleTriangleCells[i*3+2] );
+  mesh->SetCell( i, cellpointer );
  } 
 }
 
@@ -89,12 +119,12 @@ void CreateDummyMesh( typename TMeshType::Pointer mesh, typename TMeshType::Pixe
 template< class TMeshType >
 typename TMeshType::CellIdentifier
 DelaunayRecursiveCriterionEvaluation( 
-																		 typename TMeshType::Pointer mesh,
-																		 typename TMeshType::PointIdentifier myPointIndex, 
-																		 typename TMeshType::CellIdentifier myCellIndex 
-																		 )
+                                     typename TMeshType::Pointer mesh,
+                                     typename TMeshType::PointIdentifier myPointIndex, 
+                                     typename TMeshType::CellIdentifier myCellIndex 
+                                     )
 {
- typedef          TMeshType												       MeshType;
+ typedef          TMeshType                               MeshType;
  typedef typename MeshType::Pointer                      MeshTypePointer;
  typedef typename MeshType::PointType                    MeshPointType;
  typedef typename MeshType::CellType                     MeshCellType;
@@ -131,66 +161,66 @@ DelaunayRecursiveCriterionEvaluation(
  
  for( int i = 0; i < 3; i++ )
  {
-	if( p[i%3] == myPointIndex )
-	{
-	 pA = p[(i+1)%3];
-	 pB = p[(i+2)%3];	  
-	 if( mesh->FindEdge( pA, pB )->IsAtBorder() )
-	 {
-		return myCellIndex;
-	 }
-	 else
-	 {
-		adjacentCellIndex = mesh->FindEdge( pA, pB )->GetRight();
-	 }
-	}
+  if( p[i%3] == myPointIndex )
+  {
+   pA = p[(i+1)%3];
+   pB = p[(i+2)%3];    
+   if( mesh->FindEdge( pA, pB )->IsAtBorder() )
+   {
+    return myCellIndex;
+   }
+   else
+   {
+    adjacentCellIndex = mesh->FindEdge( pA, pB )->GetRight();
+   }
+  }
  }
  
  myPointCoord = mesh->GetPoint( myPointIndex );
  if( TestPointInTriangleInMesh< MeshType >( mesh, adjacentCellIndex, myPointCoord, true ) )
  {
 
-	mesh->GetCell( adjacentCellIndex, myCellPointer );
-	pointIdIterator = myCellPointer->PointIdsBegin();
-	
-	while( pointIdIterator != myCellPointer->PointIdsEnd() )
-	{
-	 if( pA != *pointIdIterator && pB != *pointIdIterator )
-	 {
-		pC = *pointIdIterator;
-	 }
-	 ++pointIdIterator;
-	}
-	
-	mesh->DeleteFace( myCellIndex );
-	mesh->DeleteFace( adjacentCellIndex );
-	
-	int simpleTriangleCells[6] =  // order change the error (segfault/outofmesh)
-	{ pA, pC, myPointIndex, 
+  mesh->GetCell( adjacentCellIndex, myCellPointer );
+  pointIdIterator = myCellPointer->PointIdsBegin();
+  
+  while( pointIdIterator != myCellPointer->PointIdsEnd() )
+  {
+   if( pA != *pointIdIterator && pB != *pointIdIterator )
+   {
+    pC = *pointIdIterator;
+   }
+   ++pointIdIterator;
+  }
+  
+  mesh->DeleteFace( myCellIndex );
+  mesh->DeleteFace( adjacentCellIndex );
+  
+  int simpleTriangleCells[6] =  // order change the error (segfault/outofmesh)
+  { pA, pC, myPointIndex, 
     pC, pB, myPointIndex };
-	
-	QEPolygonCellType *poly;
-	MeshCellCellAutoPointer cellpointer;
-	MeshCellIdentifier      cellIndexTab[2];
-	for( unsigned int i = 0; i<2; i++ )
-	{
-	 poly = new QEPolygonCellType( 3 );
-	 cellpointer.TakeOwnership( poly );
-	 cellpointer->SetPointId( 0, simpleTriangleCells[i*3] );
-	 cellpointer->SetPointId( 1, simpleTriangleCells[i*3+1] );
-	 cellpointer->SetPointId( 2, simpleTriangleCells[i*3+2] );
-	 cellIndexTab[i] = mesh->FindFirstUnusedCellIndex();
-	 mesh->SetCell( cellIndexTab[i], cellpointer ); 
-	} 
-	
-	std::cout<<"\tedge ("<<pA<<"-"<<pB<<") is flip, we delete cells "<<myCellIndex<<" and "<<adjacentCellIndex<<"\n"
-	         <<"\t\t new cell : "<<cellIndexTab[0]<<" ("<<myPointIndex<<","<<pA<<","<<pC<<")\n"
-	         <<"\t\t new cell : "<<cellIndexTab[1]<<" ("<<myPointIndex<<","<<pC<<","<<pB<<")\n";
-		
-	//DelaunayRecursiveCriterionEvaluation< MeshType >( mesh, myPointIndex, cellIndexTab[0] ); 
-	//DelaunayRecursiveCriterionEvaluation< MeshType >( mesh, myPointIndex, cellIndexTab[1] );
-	
-	myCellIndex = cellIndexTab[0];
+  
+  QEPolygonCellType *poly;
+  MeshCellCellAutoPointer cellpointer;
+  MeshCellIdentifier      cellIndexTab[2];
+  for( unsigned int i = 0; i<2; i++ )
+  {
+   poly = new QEPolygonCellType( 3 );
+   cellpointer.TakeOwnership( poly );
+   cellpointer->SetPointId( 0, simpleTriangleCells[i*3] );
+   cellpointer->SetPointId( 1, simpleTriangleCells[i*3+1] );
+   cellpointer->SetPointId( 2, simpleTriangleCells[i*3+2] );
+   cellIndexTab[i] = mesh->FindFirstUnusedCellIndex();
+   mesh->SetCell( cellIndexTab[i], cellpointer ); 
+  } 
+  
+  std::cout<<"\tedge ("<<pA<<"-"<<pB<<") is flip, we delete cells "<<myCellIndex<<" and "<<adjacentCellIndex<<"\n"
+           <<"\t\t new cell : "<<cellIndexTab[0]<<" ("<<myPointIndex<<","<<pA<<","<<pC<<")\n"
+           <<"\t\t new cell : "<<cellIndexTab[1]<<" ("<<myPointIndex<<","<<pC<<","<<pB<<")\n";
+    
+  //DelaunayRecursiveCriterionEvaluation< MeshType >( mesh, myPointIndex, cellIndexTab[0] ); 
+  //DelaunayRecursiveCriterionEvaluation< MeshType >( mesh, myPointIndex, cellIndexTab[1] );
+  
+  myCellIndex = cellIndexTab[0];
  }
 
  return myCellIndex;
@@ -211,7 +241,7 @@ DelaunayTriangulation( TPointSetType* myPointSet )
  typedef typename PointSetType::PointsContainer               PointSetPointsContainer;
  typedef typename PointSetType::PointsContainerConstIterator  PointSetPointsContainerConstIterator;
  
- typedef          TMeshType												       MeshType;
+ typedef          TMeshType                               MeshType;
  typedef typename MeshType::Pointer                      MeshTypePointer;
  typedef typename MeshType::PointType                    MeshPointType;
  typedef typename MeshType::CellType                     MeshCellType;
@@ -240,7 +270,7 @@ DelaunayTriangulation( TPointSetType* myPointSet )
  
  std::cout << "\nNo. of Cells : " << myMesh->GetNumberOfCells()
            << "\nNo. of Edges : " << myMesh->GetNumberOfEdges()
-					 << "\nNo. of Faces : " << myMesh->GetNumberOfFaces()
+           << "\nNo. of Faces : " << myMesh->GetNumberOfFaces()
            << "\nNo. of Points : " << myMesh->GetNumberOfPoints() <<"\n\n";
  
  PointSetPointsContainer              *myPoints           = myPointSet->GetPoints();
@@ -251,118 +281,121 @@ DelaunayTriangulation( TPointSetType* myPointSet )
  int o(1);
  while( pointIterator != myPoints->End() ) 
  {
-	std::cout<<"/---------------------------------------------------/\n";
-	std::cout<<"Delaunay iteration : "<<o<<"/"<<myPoints->Size();
-	std::cout<<" - pts "<<o+3<<" ("<<pointIterator.Value()[0]<<","<<pointIterator.Value()[1]<<")"<<std::endl;
-	
-	PointSetPointType       myTempPoint;
-	MeshPointType           myPoint;
-	MeshPointIdentifier     myPointIndex;
-	MeshCellIdentifier      myCellIndex;
-	MeshCellCellAutoPointer myCellPointer;
+  std::cout<<"/---------------------------------------------------/\n";
+  std::cout<<"Delaunay iteration : "<<o<<"/"<<myPoints->Size();
+  std::cout<<" - pts "<<o+3<<" ("<<pointIterator.Value()[0]<<","<<pointIterator.Value()[1]<<")"<<std::endl;
+  
+  PointSetPointType       myTempPoint;
+  MeshPointType           myPoint;
+  MeshPointIdentifier     myPointIndex;
+  MeshCellIdentifier      myCellIndex;
+  MeshCellCellAutoPointer myCellPointer;
 
-	// Get the current point
-	myTempPoint  = pointIterator.Value();
-	myPoint[0]   = myTempPoint[0];
-	myPoint[1]   = myTempPoint[1];
-	myPoint[2]   = myTempPoint[2];
-	myPointIndex = myMesh->FindFirstUnusedPointIndex();
-	
-	// Find the triangle that include the point
-	std::cout<<"I walk the mesh -  starting cell "<<myStartingCellIndex<<"\n";
-	WalkInTriangulationPointer         letsWalk       = WalkInTriangulation::New();
-	MeshCellIdVectorContainer::Pointer walkCellIdList = MeshCellIdVectorContainer::New();
-	try 
-	{
-	 walkCellIdList = letsWalk->Evaluate( myMesh, myPoint, myStartingCellIndex );
-	}
-	catch( int e ) 
-	{
-	 if( e == -1 )
-	 { 
-		std::cout<< "Error Walk - Point is out of the mesh\n";
-	 }
-	 else if( e == -2 )
-	 {
-		std::cerr<< "Error Walk - Starting cell does not exist\n";
-	 }
-	 else
-	 {
-		std::cerr<< "Error Walk - Unknown error\n";
-	 }	 
-	 break;
-	}
-	myCellIndex = ( --walkCellIdList->End() )->Value();
-	std::cout<<"I walked the mesh\n";
-	
-	if( myMesh->GetCell( myCellIndex, myCellPointer ) )
-	{	 
-	 MeshCellPointIdIterator pointIdIterator;
-	 MeshPointIdentifier pA, pB, pC;
-	 MeshCellIdentifier  t1, t2, t3;
-	 
-	 myMesh->GetCell( myCellIndex, myCellPointer );
-	 
+  // Get the current point
+  myTempPoint  = pointIterator.Value();
+  myPoint[0]   = myTempPoint[0];
+  myPoint[1]   = myTempPoint[1];
+  myPoint[2]   = myTempPoint[2];
+  myPointIndex = myMesh->FindFirstUnusedPointIndex();
+  
+  // Find the triangle that include the point
+  std::cout<<"I walk the mesh -  starting cell "<<myStartingCellIndex<<"\n";
+  WalkInTriangulationPointer         letsWalk       = WalkInTriangulation::New();
+  MeshCellIdVectorContainer::Pointer walkCellIdList = MeshCellIdVectorContainer::New();
+  try 
+  {
+   walkCellIdList = letsWalk->Evaluate( myMesh, myPoint, myStartingCellIndex );
+  }
+  catch( int e ) 
+  {
+   if( e == -1 )
+   { 
+    std::cout<< "Error Walk - Point is out of the mesh\n";
+   }
+   else if( e == -2 )
+   {
+    std::cerr<< "Error Walk - Starting cell does not exist\n";
+   }
+   else
+   {
+    std::cerr<< "Error Walk - Unknown error\n";
+   }   
+   break;
+  }
+  myCellIndex = ( --walkCellIdList->End() )->Value();
+  std::cout<<"I walked the mesh\n";
+  
+  if( myMesh->GetCell( myCellIndex, myCellPointer ) )
+  {   
+   MeshCellPointIdIterator pointIdIterator;
+   MeshPointIdentifier pA, pB, pC;
+   MeshCellIdentifier  t1, t2, t3;
+   
+   myMesh->GetCell( myCellIndex, myCellPointer );
+   
    pointIdIterator = myCellPointer->PointIdsBegin();
    pA = *pointIdIterator;
-	 pointIdIterator++;
+   pointIdIterator++;
    pB = *pointIdIterator;
-	 pointIdIterator++;
+   pointIdIterator++;
    pC = *pointIdIterator;
    
-	 // Delete the triangle
-	 myMesh->DeleteFace( myCellIndex );
-	 myMesh->SetPoint( myPointIndex, myPoint );
+   // Delete the triangle
+   myMesh->DeleteFace( myCellIndex );
+   myMesh->SetPoint( myPointIndex, myPoint );
 
-	 // Create 3 new triangles
-	 t1 = myMesh->FindFirstUnusedCellIndex();
-	 myMesh->AddFaceTriangle( pA, pB, myPointIndex );
+   // Create 3 new triangles
+   t1 = myMesh->FindFirstUnusedCellIndex();
+   myMesh->AddFaceTriangle( pA, pB, myPointIndex );
    t2 = myMesh->FindFirstUnusedCellIndex();
-	 myMesh->AddFaceTriangle( pB, pC, myPointIndex );
+   myMesh->AddFaceTriangle( pB, pC, myPointIndex );
    t3 = myMesh->FindFirstUnusedCellIndex();
-	 myMesh->AddFaceTriangle( pC, pA, myPointIndex );
-	 
-	 std::cout<<"Cell id "<<myCellIndex<<" ( "<<pA<<","<<pB<<","<<pC<<") replaced by \n"
-	          <<"\t"<<t1<<" ("<<pA<<","<<pB<<","<<myPointIndex<<")\n"
-	          <<"\t"<<t2<<" ("<<pB<<","<<pC<<","<<myPointIndex<<")\n"
-	          <<"\t"<<t3<<" ("<<pC<<","<<pA<<","<<myPointIndex<<")\n";
-	 
-	 // Delaunay criterion recursive test
-	 t1 = DelaunayRecursiveCriterionEvaluation< MeshType >( myMesh, myPointIndex, t1 );
-	 t2 = DelaunayRecursiveCriterionEvaluation< MeshType >( myMesh, myPointIndex, t2 );
-	 t3 = DelaunayRecursiveCriterionEvaluation< MeshType >( myMesh, myPointIndex, t3 );
-	 
-	 
-	 //myStartingCellIndex = 0; // => error pts out of mesh inside WiT
-	 myStartingCellIndex = t1; // => error segmentation fault at FindEdge inside WiT
-	 //myStartingCellIndex = t2; // => Against all odds it is working
+   myMesh->AddFaceTriangle( pC, pA, myPointIndex );
+   
+   std::cout<<"Cell id "<<myCellIndex<<" ( "<<pA<<","<<pB<<","<<pC<<") replaced by \n"
+            <<"\t"<<t1<<" ("<<pA<<","<<pB<<","<<myPointIndex<<")\n"
+            <<"\t"<<t2<<" ("<<pB<<","<<pC<<","<<myPointIndex<<")\n"
+            <<"\t"<<t3<<" ("<<pC<<","<<pA<<","<<myPointIndex<<")\n";
+   
+      // Delaunay criterion recursive test
+   t1 = DelaunayRecursiveCriterionEvaluation< MeshType >( myMesh, myPointIndex, t1 );
+   t2 = DelaunayRecursiveCriterionEvaluation< MeshType >( myMesh, myPointIndex, t2 );
+   t3 = DelaunayRecursiveCriterionEvaluation< MeshType >( myMesh, myPointIndex, t3 );
+  
+   ////////////////// LINK VERIFICATION /////////////
+   CheckONextLink< MeshType >( myMesh );
+   /////////////////////////////////////////////////
+   
+   //myStartingCellIndex = 0; // => error pts out of mesh inside WiT
+   myStartingCellIndex = t1; // => error segmentation fault at FindEdge inside WiT
+   //myStartingCellIndex = t2; // => Against all odds it is working
    //myStartingCellIndex = t3; // => error pts out of mesh inside WiT
-	 
-	 ++pointIterator;
-	 
-	 // VERIFICATION /////////////////////////////////////////////
-	 typedef itk::QuadEdgeMesh< double, 3 > TempMeshType;
-	 typedef typename itk::VTKPolyDataWriter< TempMeshType > MeshWriter;
-	 MeshWriter::Pointer write = MeshWriter::New();
-	 write->SetFileName("./tempMesh.vtk");
-	 write->SetInput( myMesh );
-	 write->Update();
-	 //getchar();
-	 // VERIFICATION /////////////////////////////////////////////
-	}
-	else
-	{
-	 std::cout<<"Error DelaunayLoop - Could not find the specified cell\n";
-	 break;
-	}  
-	o++;
-	std::cout << "\nNo. of Cells : " << myMesh->GetNumberOfCells()
-						<< "\nNo. of Edges : " << myMesh->GetNumberOfEdges()
-	          << "\nNo. of Faces : " << myMesh->GetNumberOfFaces()
-	          << "\nNo. of Points : " << myMesh->GetNumberOfPoints() <<"\n\n";
-	
-	// Detele dummy points
-	
+   
+   ++pointIterator;
+   
+   // VERIFICATION /////////////////////////////////////////////
+   typedef itk::QuadEdgeMesh< double, 3 > TempMeshType;
+   typedef typename itk::VTKPolyDataWriter< TempMeshType > MeshWriter;
+   MeshWriter::Pointer write = MeshWriter::New();
+   write->SetFileName("./tempMesh.vtk");
+   write->SetInput( myMesh );
+   write->Update();
+   //getchar();
+   // VERIFICATION /////////////////////////////////////////////
+  }
+  else
+  {
+   std::cout<<"Error DelaunayLoop - Could not find the specified cell\n";
+   break;
+  }  
+  o++;
+  std::cout << "\nNo. of Cells : " << myMesh->GetNumberOfCells()
+            << "\nNo. of Edges : " << myMesh->GetNumberOfEdges()
+            << "\nNo. of Faces : " << myMesh->GetNumberOfFaces()
+            << "\nNo. of Points : " << myMesh->GetNumberOfPoints() <<"\n\n";
+  
+  // Detele dummy points
+  
  } 
  return myMesh;
 }
@@ -393,7 +426,7 @@ main( int argc, char* argv[] )
  std::vector<PointType> pts = GeneratePointCoordinates< PointSetType >( meshSize ); 
  for( int i = 0; i < expectedNumPts ; i++ )
  {
-	myPointSet->SetPoint( i, pts[i] );
+  myPointSet->SetPoint( i, pts[i] );
  }
  
  MeshType::Pointer myTriangulatedMesh = MeshType::New();

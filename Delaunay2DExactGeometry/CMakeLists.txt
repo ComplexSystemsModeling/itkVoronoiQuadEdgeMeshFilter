@@ -48,12 +48,33 @@ target_link_libraries( Delaunay2DExactGeometry
 include( CTest )
 
 add_test( Delaunay2DExactGeometry01
-  Delaunay2DExactGeometry 2
+  Delaunay2DExactGeometry 1
   )
 add_test( Delaunay2DExactGeometry02
-  Delaunay2DExactGeometry 10
+  Delaunay2DExactGeometry 2
   )
 add_test( Delaunay2DExactGeometry03
-  Delaunay2DExactGeometry 20
+  Delaunay2DExactGeometry 3
+  )
+add_test( Delaunay2DExactGeometry04
+  Delaunay2DExactGeometry 4
+  )
+add_test( Delaunay2DExactGeometry05
+  Delaunay2DExactGeometry 5
+  )
+add_test( Delaunay2DExactGeometry06
+  Delaunay2DExactGeometry 6
+  )
+add_test( Delaunay2DExactGeometry07
+  Delaunay2DExactGeometry 7
+  )
+add_test( Delaunay2DExactGeometry08
+  Delaunay2DExactGeometry 8
+  )
+add_test( Delaunay2DExactGeometry09
+  Delaunay2DExactGeometry 9
+  )
+add_test( Delaunay2DExactGeometry10
+  Delaunay2DExactGeometry 10
   )
 

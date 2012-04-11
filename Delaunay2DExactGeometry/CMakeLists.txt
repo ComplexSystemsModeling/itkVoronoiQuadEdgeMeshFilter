@@ -48,33 +48,45 @@ target_link_libraries( Delaunay2DExactGeometry
 include( CTest )
 
 add_test( Delaunay2DExactGeometry01
-  Delaunay2DExactGeometry 1
+  Delaunay2DExactGeometry reg 1
   )
 add_test( Delaunay2DExactGeometry02
-  Delaunay2DExactGeometry 2
+  Delaunay2DExactGeometry reg 2
   )
 add_test( Delaunay2DExactGeometry03
-  Delaunay2DExactGeometry 3
+  Delaunay2DExactGeometry reg 3
   )
 add_test( Delaunay2DExactGeometry04
-  Delaunay2DExactGeometry 4
+  Delaunay2DExactGeometry reg 4
   )
 add_test( Delaunay2DExactGeometry05
-  Delaunay2DExactGeometry 5
+  Delaunay2DExactGeometry reg 5
   )
 add_test( Delaunay2DExactGeometry06
-  Delaunay2DExactGeometry 6
+  Delaunay2DExactGeometry reg 6
   )
 add_test( Delaunay2DExactGeometry07
-  Delaunay2DExactGeometry 7
+  Delaunay2DExactGeometry reg 7
   )
 add_test( Delaunay2DExactGeometry08
-  Delaunay2DExactGeometry 8
+  Delaunay2DExactGeometry reg 8
   )
 add_test( Delaunay2DExactGeometry09
-  Delaunay2DExactGeometry 9
+  Delaunay2DExactGeometry reg 9
   )
 add_test( Delaunay2DExactGeometry10
-  Delaunay2DExactGeometry 10
+  Delaunay2DExactGeometry reg 10
   )
 
+add_test( Delaunay2DExactGeometry11
+  Delaunay2DExactGeometry rand 20
+  )
+add_test( Delaunay2DExactGeometry12
+  Delaunay2DExactGeometry rand 20
+  )
+add_test( Delaunay2DExactGeometry13
+  Delaunay2DExactGeometry rand 20
+  )
+add_test( Delaunay2DExactGeometry14
+  Delaunay2DExactGeometry rand 20
+  )

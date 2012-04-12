@@ -47,13 +47,6 @@ void CheckONextLink( typename TMeshType::Pointer mesh )
     }
   
   std::cout<<"Check O ring done\n";
- 
-  MeshWriterPointer writer = MeshWriterType::New();
-  writer->SetFileName( "temporaryMesh.vtk" );
-  writer->SetInput( mesh );
-  writer->Update();
-
-  std::cout<<"Check mesh writing\n";
 }
 
 // Create a dummy mesh for triangulation initialisation
@@ -143,13 +136,13 @@ RecursiveFlipEdgeEvaluation( typename TMeshType::Pointer mesh,
   typedef typename MeshType::QEType                       MeshQuadEdgeType;
   typedef typename MeshType::CellsContainerIterator       MeshCellsContainerIteratorType;
   typedef typename MeshType::PointsContainerConstIterator MeshPointsContainerConstIterator;
-  
+
   typedef typename MeshCellType::PointIdConstIterator  MeshCellPointIdConstIterator;
   typedef typename MeshCellType::PointIdIterator       MeshCellPointIdIterator;
   typedef typename MeshCellType::CellAutoPointer       MeshCellCellAutoPointer;
-  
-  typedef typename MeshQuadEdgeType::DualOriginRefType MeshDualOriginRefType;
-  
+
+  typedef typename MeshQuadEdgeType::DualOriginRefType MeshDualOriginRefType; 
+
   typedef typename itk::QuadEdgeMeshPolygonCell< MeshCellType > QEPolygonCellType;
 
   MeshPointIdentifier     pA,pB,pC;
@@ -159,16 +152,14 @@ RecursiveFlipEdgeEvaluation( typename TMeshType::Pointer mesh,
   MeshCellCellAutoPointer myCellPointer;
   MeshCellPointIdIterator pointIdIterator;
   bool flip = false;
-  
-  if( mesh->GetCell( myCellIndex, myCellPointer ) )
+
+  if( mesh->GetCell( myCellIndex, myCellPointer ) ) // Check cellindex argument
     {
-    
-    mesh->GetCell( myCellIndex, myCellPointer );
+    //mesh->GetCell( myCellIndex, myCellPointer );
     pointIdIterator = myCellPointer->PointIdsBegin();
     p[0] = *(pointIdIterator);
     p[1] = *(++pointIdIterator);
     p[2] = *(++pointIdIterator);
-    
     for( int i = 0; i < 3; i++ )
       {
       if( p[i%3] == myPointIndex )
@@ -177,89 +168,164 @@ RecursiveFlipEdgeEvaluation( typename TMeshType::Pointer mesh,
         pB = p[(i+2)%3];
         }
       }
+    std::cout << "Triangle T : "<< myCellIndex << " (" << myPointIndex << "," << pA << "," << pB <<")\n";
     
-    if( !mesh->FindEdge( pA, pB )->IsAtBorder() )
+    if( mesh->FindEdge( pA, pB ) ) // Check the selected edge consistancy
       {
-      
-      adjacentCellIndex = mesh->FindEdge( pA, pB )->GetRight();
-      myPointCoord = mesh->GetPoint( myPointIndex );
-      if( TestPointInTriangleInMesh< MeshType >( mesh, adjacentCellIndex, myPointCoord, true ) )
+      if(!mesh->FindEdge( pA, pB )->IsAtBorder() ) // Check if flipable
         {
         
-        if( mesh->GetCell( adjacentCellIndex, myCellPointer ) )
+        MeshDualOriginRefType adjT1, adjT2;
+        
+        adjT1 = mesh->FindEdge( pA, pB )->GetRight();
+        adjT2 = mesh->FindEdge( pA, pB )->GetLeft();        
+        if( !mesh->GetCell( adjT1, myCellPointer) && !mesh->GetCell( adjT2, myCellPointer) )
           {
-          
-          mesh->GetCell( adjacentCellIndex, myCellPointer );
-          pointIdIterator = myCellPointer->PointIdsBegin();
-            
-          while( pointIdIterator != myCellPointer->PointIdsEnd() )
+          std::cerr << "Right = "<<adjT1<<"\t";
+          std::cerr << "Left = "<<adjT2<<"\n";
+          std::cerr << "HUSTON WE HAVE A PROBLEM\n";
+          return EXIT_FAILURE;
+          }
+        
+        adjacentCellIndex = mesh->FindEdge( pA, pB )->GetRight();
+        std::cout << "Right adjacency : "<< adjacentCellIndex <<"\n";
+        if( adjacentCellIndex == myCellIndex )
+          {
+          std::cout << "It is our current Cell : "<< adjacentCellIndex <<" = "<< myCellIndex << "\n";
+          adjacentCellIndex = mesh->FindEdge( pA, pB )->GetLeft();
+          std::cout << "Left adjacency : "<< adjacentCellIndex <<"\n";
+          }
+        myPointCoord = mesh->GetPoint( myPointIndex );
+        
+        if( mesh->GetCell( adjacentCellIndex, myCellPointer) ) // Check the neighbour cell consistancy
+          { 
+          if( TestPointInTriangleInMesh< MeshType >( mesh, adjacentCellIndex, myPointCoord, true ) ) // Check Delaunay criterion
             {
-            if( pA != *pointIdIterator && pB != *pointIdIterator )
+            
+            //mesh->GetCell( adjacentCellIndex, myCellPointer );
+            pointIdIterator = myCellPointer->PointIdsBegin();
+            while( pointIdIterator != myCellPointer->PointIdsEnd() )
               {
-              pC = *pointIdIterator;
+              if( pA != *pointIdIterator && pB != *pointIdIterator )
+                {
+                pC = *pointIdIterator;
+                }
+              ++pointIdIterator;
               }
-            ++pointIdIterator;
+            
+            std::cout << "Triangle aT : "<< adjacentCellIndex << " (" << pA << "," << pC << "," << pB <<")\n";
+            
+            mesh->DeleteFace( myCellIndex );
+            mesh->DeleteFace( adjacentCellIndex );
+            
+            if( mesh->GetCell( adjacentCellIndex, myCellPointer ) ) // Check cell suppression
+              {
+              std::cerr << "WTF is adjacentCell is still existing O_o!!\n";
+              return flip;
+              }
+            if( mesh->GetCell( myCellIndex, myCellPointer ) ) // Check cell suppression
+              {
+              std::cerr << "WTF is myCell is still existing O_o!!\n";
+              return flip;
+              }
+            
+            int simpleTriangleCells[6] = 
+            { myPointIndex, pA, pC, 
+              myPointIndex, pC, pB };
+            
+            QEPolygonCellType *poly;
+            MeshCellCellAutoPointer cellpointer;
+            MeshCellIdentifier      cellIndexTab[2];
+            for( unsigned int i = 0; i<2; i++ )
+              {
+              cellIndexTab[i] = mesh->FindFirstUnusedCellIndex();
+              poly = new QEPolygonCellType( 3 );
+              cellpointer.TakeOwnership( poly );
+              cellpointer->SetPointId( 0, simpleTriangleCells[i*3] );
+              cellpointer->SetPointId( 1, simpleTriangleCells[i*3+1] );
+              cellpointer->SetPointId( 2, simpleTriangleCells[i*3+2] );
+              mesh->SetCell( cellIndexTab[i], cellpointer ); 
+              std::cout << "we create a new cell " << cellIndexTab[i] << " ("; 
+              std::cout << simpleTriangleCells[i*3] << ","; 
+              std::cout << simpleTriangleCells[i*3+1] << ","; 
+              std::cout << simpleTriangleCells[i*3+2] << ")\n";
+              }  
+            
+            // Check new cell edge consistancy
+            if( mesh->FindEdge(pC, myPointIndex) )
+              std::cout << "find edge test " << pC << "-" << myPointIndex <<" OK\n";
+            if( mesh->FindEdge(myPointIndex, pC) )
+              std::cout << "find edge test " << myPointIndex << "-" << pC <<" OK\n";
+            if( mesh->FindEdge(pA, pC) )
+              std::cout << "find edge test " << pA << "-" << pC <<" OK\n";
+            if( mesh->FindEdge(pC, pA) )
+              std::cout << "find edge test " << pC << "-" << pA <<" OK\n";
+            if( mesh->FindEdge(myPointIndex, pA) )
+              std::cout << "find edge test " << myPointIndex << "-" << pA <<" OK\n";
+            if( mesh->FindEdge(pA, myPointIndex) )          
+              std::cout << "find edge test " << pA << "-" << myPointIndex <<" OK\n";
+            if( mesh->FindEdge(myPointIndex, pC) )
+              std::cout << "find edge test " << myPointIndex << "-" << pC <<" OK\n";
+            if( mesh->FindEdge(pC, myPointIndex) )
+              std::cout << "find edge test " << pC << "-" << myPointIndex <<" OK\n";
+            if( mesh->FindEdge(pC, pB) )
+              std::cout << "find edge test " << pC << "-" << pB <<" OK\n";
+            if( mesh->FindEdge(pB, pC) )
+              std::cout << "find edge test " << pB << "-" << pC <<" OK\n";
+            if( mesh->FindEdge(myPointIndex, pC) )
+              std::cout << "find edge test " << myPointIndex << "-" << pC <<" OK\n";
+            if( mesh->FindEdge(pC, myPointIndex) )
+              std::cout << "find edge test " << pC << "-" << myPointIndex <<" OK\n";
+            
+            std::cout << "\tedge (" << pA << "-" << pB << ") is flip, we delete cells " << myCellIndex << " and " << adjacentCellIndex << "\n"
+            << "\t\t new cell : " << cellIndexTab[0] << " (" << myPointIndex << "," << pA << "," << pC << ")\n"
+            << "\t\t new cell : " << cellIndexTab[1] << " (" << myPointIndex << "," << pC << "," << pB << ")\n";
+            
+            // VERIFICATION & DEBUG  /////////////////////////////////////////////
+            CheckONextLink< MeshType >( mesh );
+            // VERIFICATION & DEBUG /////////////////////////////////////////////
+            
+            //RecursiveFlipEdgeEvaluation< MeshType >( mesh, myPointIndex, cellIndexTab[0] ); 
+            //RecursiveFlipEdgeEvaluation< MeshType >( mesh, myPointIndex, cellIndexTab[1] );
+            
+            // VERIFICATION & DEBUG  /////////////////////////////////////////////
+            CheckONextLink< MeshType >( mesh ); 
+            // VERIFICATION & DEBUG /////////////////////////////////////////////
+            
+            flip = true;
             }
-            
-          mesh->DeleteFace( myCellIndex );
-          mesh->DeleteFace( adjacentCellIndex );
-           
-          int simpleTriangleCells[6] = 
-          { myPointIndex, pA, pC, 
-            myPointIndex, pC, pB };
-            
-          QEPolygonCellType *poly;
-          MeshCellCellAutoPointer cellpointer;
-          MeshCellIdentifier      cellIndexTab[2];
-          for( unsigned int i = 0; i<2; i++ )
+          else 
             {
-            cellIndexTab[i] = mesh->FindFirstUnusedCellIndex();
-            poly = new QEPolygonCellType( 3 );
-            cellpointer.TakeOwnership( poly );
-            cellpointer->SetPointId( 0, simpleTriangleCells[i*3] );
-            cellpointer->SetPointId( 1, simpleTriangleCells[i*3+1] );
-            cellpointer->SetPointId( 2, simpleTriangleCells[i*3+2] );
-            mesh->SetCell( cellIndexTab[i], cellpointer ); 
-            }  
-
-          std::cout << "\tedge (" << pA << "-" << pB << ") is flip, we delete cells " << myCellIndex << " and " << adjacentCellIndex << "\n"
-          << "\t\t new cell : " << cellIndexTab[0] << " (" << myPointIndex << "," << pA << "," << pC << ")\n"
-          << "\t\t new cell : " << cellIndexTab[1] << " (" << myPointIndex << "," << pC << "," << pB << ")\n";
-          
-          // VERIFICATION & DEBUG  /////////////////////////////////////////////
-          CheckONextLink< MeshType >( mesh );
-          // VERIFICATION & DEBUG /////////////////////////////////////////////
-          
-          RecursiveFlipEdgeEvaluation< MeshType >( mesh, myPointIndex, cellIndexTab[0] ); 
-          RecursiveFlipEdgeEvaluation< MeshType >( mesh, myPointIndex, cellIndexTab[1] );
-          
-          // VERIFICATION & DEBUG  /////////////////////////////////////////////
-          CheckONextLink< MeshType >( mesh ); 
-          // VERIFICATION & DEBUG /////////////////////////////////////////////
-            
-          flip = true;
+            std::cout << "Not inside the circle, no need to flip the edge\n";
+            return flip;
+            }
           }
         else 
           {
-          std::cout << "Error - cell does not exist\n";
-          return false;
+          std::cerr << "Error mesh consistance - Adjacent cell does not exist while it should\n";
+          std::cerr << "Triangle aT : "<< adjacentCellIndex << " (through the edge " << pA << "-" << pB <<")\n";
+          return flip;
           }
         }
-      else
+      else 
         {
-        flip = false;
+        std::cout << "It is a border edge, we can not flip it\n";
+        return flip;
         }
       }
     else
       {
-      flip = false;
+      std::cerr << "Error mesh consistance - Edge does not exist while it should exist\n";
+      std::cerr << "Edge " << pA << "-" << pB <<" has a problem\n";
+      return flip;
       }
-    }
+    }    
   else 
     {
-    std::cout << "Error - cell does not exist\n";
-    return false;
+    std::cerr << "Error - Cell given in parameter does not exist\n";
+    return flip; 
     }
+
   return flip;
 }
 
@@ -270,7 +336,7 @@ class TPointSetType,
 class TMeshType
 >
 typename TMeshType::Pointer
-DelaunayTriangulation( TPointSetType* myPointSet )
+DelaunayTriangulation( typename TPointSetType::Pointer myPointSet )
 {
   typedef          TPointSetType                               PointSetType;
   typedef typename PointSetType::PointType                     PointSetPointType;
@@ -346,15 +412,18 @@ DelaunayTriangulation( TPointSetType* myPointSet )
      {
      if( e == -1 )
        { 
-       std::cout<< "Error Walk - Point is out of the mesh\n";
+       std::cerr<< "Error Walk - Point is out of the mesh\n";
+       throw -1;
        }
      else if( e == -2 )
        {
        std::cerr<< "Error Walk - Starting cell does not exist\n";
+       throw -1;
        }
      else
        {
        std::cerr<< "Error Walk - Unknown error\n";
+       throw -2;
        }   
      break;
      }
@@ -420,17 +489,22 @@ DelaunayTriangulation( TPointSetType* myPointSet )
        
      //myStartingCellIndex = newCellIds[ rand()%3 ]; 
      
-     std::cout<<"new starting cell : \n";  
      MeshQuadEdgeType* e = myMesh->FindEdge( myPointIndex );
      myStartingCellIndex = e->GetRight();
-     std::cout << "my new starting cell : " << myStartingCellIndex << "\n";
-     ++pointIterator;
+     std::cout << "We take right starting cell : " << myStartingCellIndex << "\n";
+     if( !myMesh->GetCell( myStartingCellIndex, cellpointer ) )
+       {
+       std::cout << "\tRight cell does not exist, we take left one\n";
+       myStartingCellIndex = e->GetLeft();
+       std::cout << "We take left starting cell : " << myStartingCellIndex << "\n";
+       }
+     else if( !myMesh->GetCell( myStartingCellIndex, cellpointer ) )
+       {
+       std::cerr<<"Error DelaunayLoop - Could not find any starting cell\n";
+       return myMesh;
+       } 
      }
-   else
-     {
-     std::cout<<"Error DelaunayLoop - Could not find the specified cell\n";
-     break;
-     }  
+   ++pointIterator;
    o++;
    std::cout << "\nNo. of Cells : " << myMesh->GetNumberOfCells()
              << "\nNo. of Edges : " << myMesh->GetNumberOfEdges()
@@ -502,7 +576,15 @@ main( int argc, char* argv[] )
       }
  
     MeshType::Pointer myTriangulatedMesh = MeshType::New();
-    myTriangulatedMesh = DelaunayTriangulation< PointSetType, MeshType >( myPointSet );
+    try
+      {
+      myTriangulatedMesh = DelaunayTriangulation< PointSetType, MeshType >( myPointSet );
+      }
+    catch( int e ) 
+      {
+      std::cerr << "Exception WiT Caught\n";
+      return EXIT_FAILURE;
+      }
     }
   else if( type == "rand" )
     {
@@ -515,11 +597,20 @@ main( int argc, char* argv[] )
       }
  
     MeshType::Pointer myTriangulatedMesh = MeshType::New();
-    myTriangulatedMesh = DelaunayTriangulation< PointSetType, MeshType >( myPointSet );
+    try
+      {
+      myTriangulatedMesh = DelaunayTriangulation< PointSetType, MeshType >( myPointSet );
+      }
+    catch( int e ) 
+      {
+      std::cerr << "Exception WiT Caught\n";
+      return EXIT_FAILURE;
+      }
     }
   else
     {
     std::cout << "usage - exe reg rowsize | exe rand nbPoint\n";
+    return EXIT_FAILURE;
     }
 
 

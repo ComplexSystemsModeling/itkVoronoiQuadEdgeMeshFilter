@@ -78,15 +78,15 @@ add_test( Delaunay2DExactGeometry10
   Delaunay2DExactGeometry reg 10
   )
 
-add_test( Delaunay2DExactGeometry11
+add_test( Delaunay2DExactGeometryRand01
   Delaunay2DExactGeometry rand 20
   )
-add_test( Delaunay2DExactGeometry12
+add_test( Delaunay2DExactGeometryRand02
   Delaunay2DExactGeometry rand 20
   )
-add_test( Delaunay2DExactGeometry13
+add_test( Delaunay2DExactGeometryRand03
   Delaunay2DExactGeometry rand 20
   )
-add_test( Delaunay2DExactGeometry14
+add_test( Delaunay2DExactGeometryRand04
   Delaunay2DExactGeometry rand 20
   )

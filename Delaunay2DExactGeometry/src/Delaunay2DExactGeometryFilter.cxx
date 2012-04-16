@@ -1,3 +1,25 @@
+//
+// change the pointset by quadedgemesh as input.
+// do a quadedgemesh to quadedgemesh process
+// keep it simple 
+// 1- create the quadedgemesh pointset
+//     validation => compare pointset and quadedgemesh file
+// 2- create the dummy triangles
+//     validation => observe the meshfile/paraview and run meshcheck function
+// 3- Triangulation loop on the quadedgemesh points
+//     validation => observe the meshfile/paraview 
+//                   and run meshcheck function on regular and random meshes
+// 4- non recursive flip process
+//     validation => observe the meshfile/paraview 
+//                   and run meshcheck function on regular and random meshes
+// 5- add recursivity
+//     validation => observe the meshfile/paraview 
+//                   and run meshcheck function on regular and random meshes
+// 6- delete dummy triangle
+//     validation => observe the meshfile/paraview 
+//                   and run meshcheck function on regular and random meshes
+//
+
 
 #include "itkPointSet.h"
 #include "itkQuadEdgeMesh.h"
@@ -277,7 +299,8 @@ RecursiveFlipEdgeEvaluation( typename TMeshType::Pointer mesh,
             if( mesh->FindEdge(pC, myPointIndex) )
               std::cout << "find edge test " << pC << "-" << myPointIndex <<" OK\n";
             
-            std::cout << "\tedge (" << pA << "-" << pB << ") is flip, we delete cells " << myCellIndex << " and " << adjacentCellIndex << "\n"
+            std::cout << "\tedge (" << pA << "-" << pB 
+		      << ") is flip, we delete cells " << myCellIndex << " and " << adjacentCellIndex << "\n"
             << "\t\t new cell : " << cellIndexTab[0] << " (" << myPointIndex << "," << pA << "," << pC << ")\n"
             << "\t\t new cell : " << cellIndexTab[1] << " (" << myPointIndex << "," << pC << "," << pB << ")\n";
             

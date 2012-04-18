@@ -208,9 +208,22 @@ RecursiveFlipEdgeTest( typename TMeshType::Pointer mesh, typename TMeshType::Poi
       std::cout << "our current point is the "<<r+1<<"rd point of the triangle, which is "<<p[r]<<"\n";
       std::cout << "the edge PiPj is "<< p[(r+1)%3]<<"-"<<p[(r+2)%3]<<"\n";
       
-      if( mesh->FindEdge(p[(r+1)%3],p[(r+2)%3]) )
+        MeshQuadEdgeType* e;
+      if( mesh->FindEdge(p[(r+1)%3],p[(r+2)%3]) ) // <= Error detected at this test, can not find edge
         {
-        MeshQuadEdgeType* e = mesh->FindEdge(p[(r+1)%3],p[(r+2)%3]);
+        e = mesh->FindEdge(p[(r+1)%3],p[(r+2)%3]);
+        }
+      else if( mesh->FindEdge(p[(r+2)%3],p[(r+1)%3]) )
+        {
+        std::cout<< "HUSTON - NEEDED TO INVERT THE EDGE !\n";
+        e = mesh->FindEdge(p[(r+2)%3],p[(r+1)%3]);        
+        }
+      else 
+        {
+        std::cerr << "Error - Could not find the edge to check\n";
+        return mesh;
+        }
+
         if( !e->IsAtBorder() )
           {
           DualOriginRefType adjCell = e->GetRight();
@@ -325,7 +338,7 @@ RecursiveFlipEdgeTest( typename TMeshType::Pointer mesh, typename TMeshType::Poi
             }
           else
             {
-            std::cerr << "Error - Could not find the adjacent edge\n";
+            std::cerr << "Error - Could not find the adjacent cell\n";
             return mesh; 
             }
           }
@@ -335,12 +348,12 @@ RecursiveFlipEdgeTest( typename TMeshType::Pointer mesh, typename TMeshType::Poi
           CheckONextLink<MeshType>( mesh );
           return mesh;
           }
-        }
+        /*}
       else
         {
         std::cerr << "Error - Could not find the edge to check\n";
         return mesh;
-        }
+        }*/
       }
     else
       {
@@ -528,11 +541,16 @@ DelaunayTriangulation( typename TPointSetType::Pointer myPointSet )
       break;
       }
     
+    std::string tempname = "./tempMesh";
+    std::string ext = ".vtk";
+    std::stringstream ss;
+    ss << o;
+    tempname = tempname + ss.str() + ext;
     CheckONextLink< MeshType >( myMesh );
     typedef itk::QuadEdgeMesh< double, 3 > TempMeshType;
     typedef itk::VTKPolyDataWriter< TempMeshType > MeshWriter;
     MeshWriter::Pointer write = MeshWriter::New();
-    write->SetFileName("./tempMesh.vtk");
+    write->SetFileName(tempname);
     write->SetInput( myMesh );
     write->Update();
 

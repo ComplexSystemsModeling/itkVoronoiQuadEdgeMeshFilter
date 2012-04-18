@@ -60,26 +60,28 @@ public:
   itkNewMacro( WalkInTriangulationFunction );
   itkTypeMacro( WalkInTriangulationFunction, QuadEdgeMeshFunctionBase );
 
-  typedef typename TMeshType::PointType              PointType;
-  typedef typename TMeshType::CellType               CellType;
-  typedef typename TMeshType::PointIdentifier        PointIdentifier;
-  typedef typename TMeshType::CellIdentifier         CellIdentifier;
-  typedef typename TMeshType::PointsContainer        PointsContainer;
-  typedef typename TMeshType::CellsContainer         CellsContainer;
-  typedef typename TMeshType::PointIdList            PointIdList;
-  typedef typename TMeshType::QEType                 QuadEdgeType;
-  typedef typename TMeshType::CellsContainerIterator CellsContainerIteratorType;
+  typedef          TMeshType                        MeshType;
+  typedef typename MeshType::Pointer                MeshTypePointer;
+  typedef typename MeshType::PointType              PointType;
+  typedef typename MeshType::CellType               CellType;
+  typedef typename MeshType::PointIdentifier        PointIdentifier;
+  typedef typename MeshType::CellIdentifier         CellIdentifier;
+  typedef typename MeshType::PointsContainer        PointsContainer;
+  typedef typename MeshType::CellsContainer         CellsContainer;
+  typedef typename MeshType::PointIdList            PointIdList;
+  typedef typename MeshType::QEType                 QuadEdgeType;
+  typedef typename MeshType::CellsContainerIterator CellsContainerIteratorType;
 
-  typedef typename CellType::PointIdConstIterator     PointIdConstIterator;
-  typedef typename CellType::PointIdIterator          PointIdIterator;
-  typedef typename CellType::CellAutoPointer          CellAutoPointer;
+  typedef typename CellType::PointIdConstIterator   PointIdConstIterator;
+  typedef typename CellType::PointIdIterator        PointIdIterator;
+  typedef typename CellType::CellAutoPointer        CellAutoPointer;
 
   typedef typename QuadEdgeType::DualOriginRefType DualOriginRefType;
 
   typedef VectorContainer< unsigned int, int > VectorContainerType;
 
   TOutputType Evaluate( 
-    TMeshType* myMesh,
+    MeshTypePointer myMesh,
     const PointType& myPts, 
     const CellIdentifier& myCell = 0
     )

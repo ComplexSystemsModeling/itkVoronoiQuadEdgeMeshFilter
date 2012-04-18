@@ -179,16 +179,20 @@ RecursiveFlipEdgeTest( typename TMeshType::Pointer mesh, typename TMeshType::Poi
   MeshCellCellAutoPointer cellpointer;
   MeshPointType pointCoord;
   
+  MeshPointIdentifier q[3]; // points index of T
+  MeshPointIdentifier p[3]; // points index of aT
+  int r(0), k(0); // current point and oposite point position  
+  
   if( mesh->GetCell( cell, cellpointer ) )
     {
     if( mesh->GetPoint( point, &pointCoord ) )
       {
+      
       mesh->GetCell( cell, cellpointer );
       mesh->GetPoint( point, &pointCoord );        
       
       MeshCellPointIdConstIterator cellPointsIterator = cellpointer->PointIdsBegin();
-      int i(0), r(0);
-      MeshPointIdentifier p[3];
+      int i(0);
       while( cellPointsIterator != cellpointer->PointIdsEnd() )
         {
         p[i] = *cellPointsIterator;
@@ -200,9 +204,9 @@ RecursiveFlipEdgeTest( typename TMeshType::Pointer mesh, typename TMeshType::Poi
         i++;
         }
       
-      std::cout << "we look at the cell "<< cell <<" made of the points ("<< p[0] <<","<< p[1] <<","<< p[2]<<")\n";
-      std::cout << "our current point is the point "<<r+1<<" point of the triangle, which is "<<p[r]<<"\n";
-      std::cout << "the edge PiPj is the edge "<< p[(r+1)%3]<<"-"<<p[(r+2)%3]<<"\n";
+      std::cout << "\nwe look at the cell "<< cell <<" made of the points ("<< p[0] <<","<< p[1] <<","<< p[2]<<")\n";
+      std::cout << "our current point is the "<<r+1<<"rd point of the triangle, which is "<<p[r]<<"\n";
+      std::cout << "the edge PiPj is "<< p[(r+1)%3]<<"-"<<p[(r+2)%3]<<"\n";
       
       if( mesh->FindEdge(p[(r+1)%3],p[(r+2)%3]) )
         {
@@ -220,8 +224,7 @@ RecursiveFlipEdgeTest( typename TMeshType::Pointer mesh, typename TMeshType::Poi
             mesh->GetCell( adjCell, cellpointer );
             
             MeshCellPointIdConstIterator adjCellPointsIterator = cellpointer->PointIdsBegin();
-            int j(0), k(0);
-            MeshPointIdentifier q[3];
+            int j(0);
             while( adjCellPointsIterator != cellpointer->PointIdsEnd() )
               {
               q[j] = *adjCellPointsIterator;
@@ -233,7 +236,7 @@ RecursiveFlipEdgeTest( typename TMeshType::Pointer mesh, typename TMeshType::Poi
               j++;
               }
             std::cout << "the neighbour cell is "<< adjCell <<" made of the points ("<< q[0] <<","<< q[1] <<","<< q[2]<<")\n";
-            std::cout << "the oposite point of our current point "<<p[r]<<" is "<<q[k]<<"\n";
+            std::cout << "the oposite point of our current point "<<p[r]<<" is the "<<k+1<<"th point of the aT which is "<<q[k]<<"\n";
             
             if( TestPointInTriangleInMesh< MeshType >( mesh, adjCell, pointCoord, true ) ) 
               {
@@ -272,19 +275,18 @@ RecursiveFlipEdgeTest( typename TMeshType::Pointer mesh, typename TMeshType::Poi
                 newCellIds[t] = mesh->FindFirstUnusedCellIndex();
                 poly = new QEPolygonCellType( 3 );
                 cellpointertemp.TakeOwnership( poly );
-                cellpointertemp->SetPointId( 0, cellPointsIds[ (t)   % 3 ] );
-                cellpointertemp->SetPointId( 1, cellPointsIds[ (t+1) % 3 ] );
-                cellpointertemp->SetPointId( 2, cellPointsIds[ (t+2) % 3 ] );
+                cellpointertemp->SetPointId( 0, cellPointsIds[ 3*t    ] );
+                cellpointertemp->SetPointId( 1, cellPointsIds[ 3*t +1 ] );
+                cellpointertemp->SetPointId( 2, cellPointsIds[ 3*t +2 ] );
                 mesh->SetCell( newCellIds[t], cellpointertemp );
-                std::cout<< "\tnew cell "<<newCellIds[t]<<" (" << cellPointsIds[ (t)% 3 ] <<","<<cellPointsIds[ (t+1)% 3 ]<<","<<cellPointsIds[ (t+2)% 3 ] <<")\n";
+                std::cout<< "\tnew cell "<<newCellIds[t]<<" (" << cellPointsIds[ 3*t ] <<","<<cellPointsIds[ 3*t+1 ]<<","<<cellPointsIds[ 3*t+2 ] <<")\n";
                 } 
               
               MeshCellPointIdConstIterator tempCellPointsIterator;
               int t;
               int tempPointsIds[3];
               
-              std::cout<< "the flip output should be ("<<p[r]<<","<<p[(r+1)%3]<<","<<q[k]<<") and ("<<p[r]<<","<<q[k]<<","<<p[(r+2)%3]<<")\n\n";
-              
+              std::cout<< "the flip output should be ("<<p[r]<<","<<p[(r+1)%3]<<","<<q[k]<<") and ("<<p[r]<<","<<q[k]<<","<<p[(r+2)%3]<<")\n";
               std::cout<< "we actually have cell "<< newCellIds[0] <<" (";
               mesh->GetCell( newCellIds[0], cellpointertemp );
               tempCellPointsIterator = cellpointertemp->PointIdsBegin();
@@ -308,10 +310,16 @@ RecursiveFlipEdgeTest( typename TMeshType::Pointer mesh, typename TMeshType::Poi
               }
               std::cout<< tempPointsIds[0]<<","<<tempPointsIds[1]<<","<<tempPointsIds[2]<<")\n";
 
+              CheckONextLink<MeshType>( mesh );
+              
+              mesh = RecursiveFlipEdgeTest< MeshType >( mesh, point, newCellIds[0] );
+              mesh = RecursiveFlipEdgeTest< MeshType >( mesh, point, newCellIds[1] );
+              
               }
             else
               {
               std::cout<< "criterion respected, no need to flip\n\n";
+              CheckONextLink<MeshType>( mesh );
               return mesh;
               }
             }
@@ -324,6 +332,7 @@ RecursiveFlipEdgeTest( typename TMeshType::Pointer mesh, typename TMeshType::Poi
         else 
           {
           std::cout << "Border edge, can not be flip\n\n";
+          CheckONextLink<MeshType>( mesh );
           return mesh;
           }
         }
@@ -345,6 +354,7 @@ RecursiveFlipEdgeTest( typename TMeshType::Pointer mesh, typename TMeshType::Poi
     return mesh;
     }
 
+  CheckONextLink<MeshType>( mesh );
   return mesh;
 }
 
@@ -493,7 +503,6 @@ DelaunayTriangulation( typename TPointSetType::Pointer myPointSet )
       myMesh = RecursiveFlipEdgeTest< MeshType >( myMesh, myPointIndex, newCellIds[0] );
       myMesh = RecursiveFlipEdgeTest< MeshType >( myMesh, myPointIndex, newCellIds[1] );
       myMesh = RecursiveFlipEdgeTest< MeshType >( myMesh, myPointIndex, newCellIds[2] );
-      
       }
       
     std::cout << "\nNo. of Cells : " << myMesh->GetNumberOfCells()
@@ -518,6 +527,14 @@ DelaunayTriangulation( typename TPointSetType::Pointer myPointSet )
       std::cerr << "Error - Could not find a correct starting cell\n";
       break;
       }
+    
+    CheckONextLink< MeshType >( myMesh );
+    typedef itk::QuadEdgeMesh< double, 3 > TempMeshType;
+    typedef itk::VTKPolyDataWriter< TempMeshType > MeshWriter;
+    MeshWriter::Pointer write = MeshWriter::New();
+    write->SetFileName("./tempMesh.vtk");
+    write->SetInput( myMesh );
+    write->Update();
 
     o++;
     ++pointIterator;

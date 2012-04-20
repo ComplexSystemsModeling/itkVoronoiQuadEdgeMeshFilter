@@ -180,7 +180,7 @@ RecursiveFlipEdgeTest( typename TMeshType::Pointer mesh, typename TMeshType::Poi
   typedef typename itk::QuadEdgeMeshPolygonCell< MeshCellType > QEPolygonCellType;
   typedef typename itk::QuadEdgeMeshEulerOperatorFlipEdgeFunction< MeshType, MeshQuadEdgeType > FlipEdgeFunctionType;
 
-
+  typedef typename itk::VTKPolyDataWriter< MeshType > MeshWriterType;
 
   MeshCellCellAutoPointer cellpointer;
   MeshPointType pointCoord;
@@ -265,6 +265,11 @@ RecursiveFlipEdgeTest( typename TMeshType::Pointer mesh, typename TMeshType::Poi
           if( TestPointInTriangleInMesh< MeshType >( mesh, adjCell, pointCoord, true ) ) 
             {
                 
+	    typename MeshWriterType::Pointer writer = MeshWriterType::New();
+	    writer->SetFileName( "beforeflip.vtk" );
+	    writer->SetInput( mesh );
+	    writer->Update();
+		    
             // NOTE ALEX: use itkQuadEdgeMeshEulerOperatorFlipEdge
 
 	    std::cout << std::endl;
@@ -278,7 +283,14 @@ RecursiveFlipEdgeTest( typename TMeshType::Pointer mesh, typename TMeshType::Poi
               {
 	      std::cerr << "ERROR - It was just a dream" << std::endl;
               }
-
+	   
+	    std::cout << "we write a mesh"<< std::endl; 
+            writer = MeshWriterType::New();
+	    writer->SetFileName( "afterflip.vtk" );
+	    writer->SetInput( mesh );
+	    writer->Update();
+	    std::cout << "mesh is writen"<< std::endl;
+	
             CheckONextLink<MeshType>( mesh );
             
 	    // NOTE STEF: need to retrive new cells ids for recursivity

@@ -4,6 +4,7 @@
 #include "itkQuadEdgeMeshPolygonCell.h"
 #include "itkVectorContainer.h"
 #include "itkQuadEdgeMeshEulerOperatorsTestHelper.h"
+#include "itkQuadEdgeMeshEulerOperatorFlipEdgeFunction.h"
 
 //---------------
 // our code
@@ -177,7 +178,9 @@ RecursiveFlipEdgeTest( typename TMeshType::Pointer mesh, typename TMeshType::Poi
   typedef typename MeshQuadEdgeType::DualOriginRefType DualOriginRefType;
   
   typedef typename itk::QuadEdgeMeshPolygonCell< MeshCellType > QEPolygonCellType;
-  
+  typedef typename itk::QuadEdgeMeshEulerOperatorFlipEdgeFunction< MeshType, MeshQuadEdgeType > FlipEdgeFunctionType;
+
+
 
   MeshCellCellAutoPointer cellpointer;
   MeshPointType pointCoord;
@@ -210,8 +213,8 @@ RecursiveFlipEdgeTest( typename TMeshType::Pointer mesh, typename TMeshType::Poi
       std::cout << std::endl;
       std::cout <<"we look at the cell " << cell << " made of the points (" << p[0] << "," << p[1] << "," << p[2] << ")";
       std::cout << std::endl;
-      std::cout << "our current point is the "<<r+1<<"rd point of the triangle, which is "<<p[r]<<"\n";
-      std::cout << "the edge PiPj is "<< p[(r+1)%3]<<"-"<<p[(r+2)%3]<<"\n";
+      std::cout << "our current point is the "<<r+1<<"rd point of the triangle, which is " << p[r] << std::endl;
+      std::cout << "the edge PiPj is "<< p[(r+1)%3] << "-" << p[(r+2)%3] << std::endl;
       
       MeshQuadEdgeType* e = mesh->FindEdge(p[(r+1)%3],p[(r+2)%3]);
       if( !e )
@@ -255,88 +258,33 @@ RecursiveFlipEdgeTest( typename TMeshType::Pointer mesh, typename TMeshType::Poi
             ++adjCellPointsIterator;
             j++;
             }
-          std::cout << "the neighbour cell is "<< adjCell <<" made of the points ("<< q[0] <<","<< q[1] <<","<< q[2]<<")\n";
-          std::cout << "the oposite point of our current point "<<p[r]<<" is the "<<k+1<<"th point of the aT which is "<<q[k]<<"\n";
+          std::cout << "the neighbour cell is " << adjCell;
+	  std::cout << " made of the points (" << q[0] <<","<< q[1] <<","<< q[2] << ")" << std::endl;
+          std::cout << "the oposite point of our current point "<<p[r]<<" is the point "<< q[k] << std::endl;
             
           if( TestPointInTriangleInMesh< MeshType >( mesh, adjCell, pointCoord, true ) ) 
             {
-            int newCellIds[2];
-            MeshCellCellAutoPointer cellpointertemp;
-
+                
             // NOTE ALEX: use itkQuadEdgeMeshEulerOperatorFlipEdge
 
-            // Delete cells
-            mesh->DeleteFace( cell );
-            mesh->DeleteFace( adjCell );
-              
-            // Method 1 
-            //
-            // std::vector< MeshPointIdentifier > cellPointsIds1 (3);
-            // cellPointsIds1[0] = p[r]; cellPointsIds1[1] = p[(r+1)%3]; cellPointsIds1[2] = q[k];
-            // std::vector< MeshPointIdentifier > cellPointsIds2 (3);
-            // cellPointsIds2[0] = p[r]; cellPointsIds2[1] = q[k]; cellPointsIds2[2] = p[(r+2)%3];
-            // MeshQuadEdgePrimal *a = mesh->AddFace( cellPointsIds1 );
-            // MeshQuadEdgePrimal *a = mesh->AddFace( cellPointsIds2 );
-            // newCellIds[0] = a->GetIdent();
-            // newCellIds[1] = b->GetIdent();              
-            //
-
-            // Method 2
-            //
-            // MeshQuadEdgePrimal *a = mesh->AddFaceTriangle( p[r], p[(r+1)%3], q[k] );
-            // MeshQuadEdgePrimal *b = mesh->AddFaceTriangle( p[r], q[k], p[(r+2)%3] );              
-            // newCellIds[0] = a->GetIdent();
-            // newCellIds[1] = b->GetIdent();              
-            //
+	    std::cout << std::endl;
+	    std::cout << "I am going to flip the edge" << std::endl;
+	    FlipEdgeFunctionType* flipedge = FlipEdgeFunctionType::New();
+	    flipedge->SetInput( mesh );
+	    e = flipedge->Evaluate( e );
+	    std::cout << "I fliped the edge and I liked it" << std::endl;
             
-            // Method 3
-              
-            int cellPointsIds[6] = { p[r], p[(r+1)%3], q[k], p[r], q[k], p[(r+2)%3] };
-            QEPolygonCellType *poly;
-            for( unsigned int t = 0; t < 2; t++ )
+            if( !e )
               {
-              newCellIds[t] = mesh->FindFirstUnusedCellIndex();
-              poly = new QEPolygonCellType( 3 );
-              cellpointertemp.TakeOwnership( poly );
-              cellpointertemp->SetPointId( 0, cellPointsIds[ 3*t    ] );
-              cellpointertemp->SetPointId( 1, cellPointsIds[ 3*t +1 ] );
-              cellpointertemp->SetPointId( 2, cellPointsIds[ 3*t +2 ] );
-              mesh->SetCell( newCellIds[t], cellpointertemp );
-              std::cout<< "\tnew cell "<<newCellIds[t]<<" (" << cellPointsIds[ 3*t ] <<","<<cellPointsIds[ 3*t+1 ]<<","<<cellPointsIds[ 3*t+2 ] <<")\n";
-              } 
-            
-            MeshCellPointIdConstIterator tempCellPointsIterator;
-            int t;
-            int tempPointsIds[3];
-              
-            std::cout<< "the flip output should be ("<<p[r]<<","<<p[(r+1)%3]<<","<<q[k]<<") and ("<<p[r]<<","<<q[k]<<","<<p[(r+2)%3]<<")\n";
-            std::cout<< "we actually have cell "<< newCellIds[0] <<" (";
-            mesh->GetCell( newCellIds[0], cellpointertemp );
-            tempCellPointsIterator = cellpointertemp->PointIdsBegin();
-            t = 0;
-            while( tempCellPointsIterator != cellpointertemp->PointIdsEnd() )
-              {
-              tempPointsIds[t] = *tempCellPointsIterator;
-              t++;
-              ++tempCellPointsIterator;
+	      std::cerr << "ERROR - It was just a dream" << std::endl;
               }
-            std::cout<< tempPointsIds[0]<<","<<tempPointsIds[1]<<","<<tempPointsIds[2]<<") and cell "<<newCellIds[1]<<" (";
-              
-            mesh->GetCell( newCellIds[1], cellpointertemp );
-            tempCellPointsIterator = cellpointertemp->PointIdsBegin();
-            t = 0;
-            while( tempCellPointsIterator != cellpointertemp->PointIdsEnd() )
-              {
-              tempPointsIds[t] = *tempCellPointsIterator;
-              t++;
-              ++tempCellPointsIterator;
-              }
-            std::cout<< tempPointsIds[0]<<","<<tempPointsIds[1]<<","<<tempPointsIds[2]<<")\n";
 
             CheckONextLink<MeshType>( mesh );
-              
-            mesh = RecursiveFlipEdgeTest< MeshType >( mesh, point, newCellIds[0] );
-            mesh = RecursiveFlipEdgeTest< MeshType >( mesh, point, newCellIds[1] );
+            
+	    // NOTE STEF: need to retrive new cells ids for recursivity
+	    //MeshCellIdentifier newCellIds[2];	 
+            //mesh = RecursiveFlipEdgeTest< MeshType >( mesh, point, newCellIds[0] );
+            //mesh = RecursiveFlipEdgeTest< MeshType >( mesh, point, newCellIds[1] );
               
             }
           else

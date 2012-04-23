@@ -5,6 +5,7 @@
 #include "itkVectorContainer.h"
 #include "itkQuadEdgeMeshEulerOperatorsTestHelper.h"
 #include "itkQuadEdgeMeshEulerOperatorFlipEdgeFunction.h"
+#include "itkDelaunayConformingQuadEdgeMeshFilter.h"
 
 //---------------
 // our code
@@ -519,18 +520,6 @@ DelaunayTriangulation( typename TPointSetType::Pointer myPointSet )
     // check consistency    
     CheckONextLink< MeshType >( myMesh );
 
-    // write down mesh
-    std::string tempname = "./tempMesh";
-    std::string ext = ".vtk";
-    std::stringstream ss;
-    ss << o;
-    tempname = tempname + ss.str() + ext;
-
-    typename MeshWriterType::Pointer write = MeshWriterType::New();
-    write->SetFileName( tempname );
-    write->SetInput( myMesh );
-    write->Update();
-
     o++;
     ++pointIterator;
     }    
@@ -560,17 +549,14 @@ main( int argc, char* argv[] )
   const unsigned int Dimension = 3;
   typedef double     PixelType;
 
-  typedef itk::QuadEdgeMesh< PixelType, Dimension > MeshType; 
-  typedef itk::PointSet< PixelType, Dimension >     PointSetType;
-  typedef PointSetType::PointType                   PointType;
-
-  // -------------------------------------------------- //
-  // Dummy QuadEdgeMesh test
-  MeshType::Pointer myDummyMesh = MeshType::New();
-  CreateDummyMesh< MeshType >( myDummyMesh, 5000 );
-
-  // -------------------------------------------------- //
-  // Delaunay Loop Test
+  typedef itk::QuadEdgeMesh< PixelType, Dimension >                       MeshType; 
+  typedef itk::PointSet< PixelType, Dimension >                           PointSetType;
+  typedef PointSetType::PointType                                         PointType;
+  typedef itk::DelaunayConformingQuadEdgeMeshFilter< MeshType, MeshType > ValidityTestType;
+  typedef itk::VTKPolyDataWriter< MeshType >                              MeshWriter;
+  
+  // -------------------------------------------------- 
+  // Initialisation
 
   int type = atoi( argv[1] );
   int meshSize = atoi( argv[2] );
@@ -588,7 +574,7 @@ main( int argc, char* argv[] )
       expectedNumPts = meshSize;
       break;
     default:
-      std::cerr << "Exit wrong arguments\n";
+      std::cerr << "Exit wrong arguments" << std::endl;
       std::cerr << "Usage - arg[1] [1|2] = [\"reg\"|\"rand\"] - arg[2] int = [rowsize|nbPoint]";
       std::cerr << std::endl;
       return EXIT_FAILURE;
@@ -599,6 +585,9 @@ main( int argc, char* argv[] )
     {
     myPointSet->SetPoint( i, pts[i] );
     }
+
+  // -------------------------------------------------- 
+  // Delaunay Test
   
   MeshType::Pointer myTriangulatedMesh = MeshType::New();
   try
@@ -613,30 +602,20 @@ main( int argc, char* argv[] )
 
   CheckONextLink< MeshType >( myTriangulatedMesh );
 
-  typedef itk::VTKPolyDataWriter< MeshType > MeshWriter;
   MeshWriter::Pointer write = MeshWriter::New();
-  write->SetFileName("./tempMesh.vtk");
+  write->SetFileName("./OutputDelaunayMesh.vtk");
   write->SetInput( myTriangulatedMesh );
   write->Update();
 
-  write = MeshWriter::New();
-  write->SetFileName("./FlipedMesh1.vtk");
-  write->SetInput( myDummyMesh );
-  write->Update();
-  
-  typedef MeshType::QEType QEType;
-  typedef itk::QuadEdgeMeshEulerOperatorFlipEdgeFunction< MeshType, QEType > FlipEdgeFunction;
-  FlipEdgeFunction::Pointer flip = FlipEdgeFunction::New();
-  flip->SetInput( myDummyMesh );
-  flip->Evaluate( myDummyMesh->FindEdge( 0, 3 ) );
+  ValidityTestType::Pointer test = ValidityTestType::New();
+  test->SetInput( myTriangulatedMesh );
+  test->SetOutput( myTriangulatedMesh );
+  test->Update();
 
-  write = MeshWriter::New();
-  write->SetFileName("./FlipedMesh2.vtk");
-  write->SetInput( myDummyMesh );
-  write->Update();
-
-
-
+  if( test->GetNumberOfEdgeFlips() > 0 )
+    {
+    return EXIT_FAILURE;
+    }
 
   return EXIT_SUCCESS;
 }

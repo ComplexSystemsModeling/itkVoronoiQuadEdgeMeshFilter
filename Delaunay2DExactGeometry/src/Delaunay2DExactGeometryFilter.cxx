@@ -81,7 +81,9 @@ GenerateRandomPointCoordinates( const unsigned int& iN )
 //
 template< class TMeshType >
 void
-CreateDummyMesh( typename TMeshType::Pointer mesh, typename TMeshType::PixelType limit )
+CreateDummyMesh( typename TMeshType::Pointer   mesh, 
+		 typename TMeshType::PixelType limit 
+		 )
 {
   // Generate a square triangulated mesh
   //
@@ -114,12 +116,11 @@ CreateDummyMesh( typename TMeshType::Pointer mesh, typename TMeshType::PixelType
   int expectedNumPts = 4;
   int expectedNumCells = 2;
   int simpleTriangleCells[6] = { 0, 1, 3, 0, 3, 2 };
+  int i( 0 );  
+  std::vector< PointType > pts( 4 );
   
   PixelType min = -limit;  
   PixelType max =  limit;
-  
-  std::vector< PointType > pts( 4 );
-  int i( 0 );
   
   pts[i][0] = min; pts[i][1] = min; pts[i++][2] = 0.;
   pts[i][0] = max; pts[i][1] = min; pts[i++][2] = 0.; 
@@ -151,10 +152,13 @@ CreateDummyMesh( typename TMeshType::Pointer mesh, typename TMeshType::PixelType
 
 //--------------------------------------------------------------------------------
 template<
-class TMeshType
+  class TMeshType
 >
 typename TMeshType::Pointer
-RecursiveFlipEdgeTest( typename TMeshType::Pointer mesh, typename TMeshType::PointIdentifier point, typename TMeshType::CellIdentifier cell )
+RecursiveFlipEdgeTest( typename TMeshType::Pointer         mesh, 
+		       typename TMeshType::PointIdentifier point, 
+		       typename TMeshType::CellIdentifier  cell 
+		       )
 {
   typedef          TMeshType                              MeshType;
   typedef typename MeshType::Pointer                      MeshTypePointer;
@@ -225,7 +229,7 @@ RecursiveFlipEdgeTest( typename TMeshType::Pointer mesh, typename TMeshType::Poi
         std::cerr << std::endl;
 
         // NOTE ALEX: temporary hack: try to find the edge with reverse point order
-        e = mesh->FindEdge(p[(r+2)%3],p[(r+1)%3]);
+        e = mesh->FindEdge( p[(r+2)%3], p[(r+1)%3] );
         if( !e )
           {
           std::cerr << "ERROR: ";
@@ -236,12 +240,14 @@ RecursiveFlipEdgeTest( typename TMeshType::Pointer mesh, typename TMeshType::Poi
 
       if( !e->IsAtBorder() )
         {
-        DualOriginRefType adjCell = e->GetRight();
+        
+	DualOriginRefType adjCell = e->GetRight();
         if( adjCell == cell )
           {
           adjCell = e->GetLeft();
           }
-        if( mesh->GetCell( adjCell, cellpointer ) )
+        
+	if( mesh->GetCell( adjCell, cellpointer ) )
           {
 
           mesh->GetCell( adjCell, cellpointer );
@@ -271,32 +277,29 @@ RecursiveFlipEdgeTest( typename TMeshType::Pointer mesh, typename TMeshType::Poi
 	    writer->Update();
 		    
             // NOTE ALEX: use itkQuadEdgeMeshEulerOperatorFlipEdge
-
 	    std::cout << std::endl;
 	    std::cout << "I am going to flip the edge" << std::endl;
-	    FlipEdgeFunctionType* flipedge = FlipEdgeFunctionType::New();
+	    typename FlipEdgeFunctionType::Pointer flipedge = FlipEdgeFunctionType::New();
 	    flipedge->SetInput( mesh );
-	    e = flipedge->Evaluate( e );
+	    e = flipedge->Evaluate( mesh->FindEdge( p[(r+1)%3], p[(r+2)%3] ) );
 	    std::cout << "I fliped the edge and I liked it" << std::endl;
-            
             if( !e )
               {
 	      std::cerr << "ERROR - It was just a dream" << std::endl;
-              }
-	   
-	    std::cout << "we write a mesh"<< std::endl; 
+              }	   
             writer = MeshWriterType::New();
 	    writer->SetFileName( "afterflip.vtk" );
 	    writer->SetInput( mesh );
 	    writer->Update();
-	    std::cout << "mesh is writen"<< std::endl;
 	
             CheckONextLink<MeshType>( mesh );
-            
+           
+	    std::cout << "the cell at the left of the edge is the edge :" << e->GetLeft() << std::endl;
+	    std::cout << "the cell at the right of the edge is the edge :" << e->GetRight() << std::endl;
+
 	    // NOTE STEF: need to retrive new cells ids for recursivity
-	    //MeshCellIdentifier newCellIds[2];	 
-            //mesh = RecursiveFlipEdgeTest< MeshType >( mesh, point, newCellIds[0] );
-            //mesh = RecursiveFlipEdgeTest< MeshType >( mesh, point, newCellIds[1] );
+            RecursiveFlipEdgeTest< MeshType >( mesh, point, e->GetLeft() );
+            RecursiveFlipEdgeTest< MeshType >( mesh, point, e->GetRight() );
               
             }
           else
@@ -354,6 +357,7 @@ DelaunayTriangulation( typename TPointSetType::Pointer myPointSet )
   typedef typename PointSetType::PointsContainerConstIterator  PointSetPointsContainerConstIterator;
   
   typedef          TMeshType                              MeshType;
+  typedef typename MeshType::PixelType                    MeshPixelType;
   typedef typename MeshType::Pointer                      MeshTypePointer;
   typedef typename MeshType::PointType                    MeshPointType;
   typedef typename MeshType::CellType                     MeshCellType;
@@ -378,9 +382,10 @@ DelaunayTriangulation( typename TPointSetType::Pointer myPointSet )
   typedef typename itk::QuadEdgeMeshPolygonCell< MeshCellType > QEPolygonCellType;
 
   // Initialisation
-  
+ 
+  MeshPixelType infinity = pow(10,10);
   MeshTypePointer myMesh = MeshType::New();
-  CreateDummyMesh< MeshType >( myMesh, 5000 );
+  CreateDummyMesh< MeshType >( myMesh, infinity );
   
   std::cout << std::endl << "No. of Cells  : " << myMesh->GetNumberOfCells();
   std::cout << std::endl << "No. of Edges  : " << myMesh->GetNumberOfEdges();
@@ -483,9 +488,9 @@ DelaunayTriangulation( typename TPointSetType::Pointer myPointSet )
       std::cout << "\t" << newCellIds[1] << " (" << cellPointsIds[1] << "," << cellPointsIds[2] << "," << myPointIndex << ")" << std::endl;
       std::cout << "\t" << newCellIds[2] << " (" << cellPointsIds[2] << "," << cellPointsIds[0] << "," << myPointIndex << ")" << std::endl; 
         
-      myMesh = RecursiveFlipEdgeTest< MeshType >( myMesh, myPointIndex, newCellIds[0] );
-      myMesh = RecursiveFlipEdgeTest< MeshType >( myMesh, myPointIndex, newCellIds[1] );
-      myMesh = RecursiveFlipEdgeTest< MeshType >( myMesh, myPointIndex, newCellIds[2] );
+      RecursiveFlipEdgeTest< MeshType >( myMesh, myPointIndex, newCellIds[0] );
+      RecursiveFlipEdgeTest< MeshType >( myMesh, myPointIndex, newCellIds[1] );
+      RecursiveFlipEdgeTest< MeshType >( myMesh, myPointIndex, newCellIds[2] );
       }
       
     std::cout << "\nNo. of Cells : " << myMesh->GetNumberOfCells()
@@ -613,6 +618,25 @@ main( int argc, char* argv[] )
   write->SetFileName("./tempMesh.vtk");
   write->SetInput( myTriangulatedMesh );
   write->Update();
+
+  write = MeshWriter::New();
+  write->SetFileName("./FlipedMesh1.vtk");
+  write->SetInput( myDummyMesh );
+  write->Update();
+  
+  typedef MeshType::QEType QEType;
+  typedef itk::QuadEdgeMeshEulerOperatorFlipEdgeFunction< MeshType, QEType > FlipEdgeFunction;
+  FlipEdgeFunction::Pointer flip = FlipEdgeFunction::New();
+  flip->SetInput( myDummyMesh );
+  flip->Evaluate( myDummyMesh->FindEdge( 0, 3 ) );
+
+  write = MeshWriter::New();
+  write->SetFileName("./FlipedMesh2.vtk");
+  write->SetInput( myDummyMesh );
+  write->Update();
+
+
+
 
   return EXIT_SUCCESS;
 }

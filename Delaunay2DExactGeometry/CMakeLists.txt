@@ -12,7 +12,8 @@ include_directories( ${WalkInTriangulation_DIR} )
 # add source file
 #
 set( Delaunay2DExactGeometry_src
-  src/Delaunay2DExactGeometryFilter.cxx
+  src/DelaunayIncremental2DFilter.cxx	
+  #src/Delaunay2DExactGeometryFilter.cxx
   ${predicates.c_location}
   )
 
@@ -21,7 +22,6 @@ set( Delaunay2DExactGeometry_src
 set( Delaunay2DExactGeometry_header
   ${WalkInTriangulation_DIR}/itkWalkInTriangulationFunction.h
   ${PointInCircle_DIR}/itkPointInCircleGeometricalPredicateFunctor.h
-  #src/Delaunay2DExactGeometryFilter.h
   )
 
 # if generat by Xcode add headers to executable
@@ -48,45 +48,32 @@ target_link_libraries( Delaunay2DExactGeometry
 include( CTest )
 
 add_test( Delaunay2DExactGeometry01
-  Delaunay2DExactGeometry 1 1
+  Delaunay2DExactGeometry 1 20
   )
 add_test( Delaunay2DExactGeometry02
-  Delaunay2DExactGeometry 1 2
+  Delaunay2DExactGeometry 2 5000
   )
 add_test( Delaunay2DExactGeometry03
-  Delaunay2DExactGeometry 1 3
+  Delaunay2DExactGeometry 2 5000
   )
 add_test( Delaunay2DExactGeometry04
-  Delaunay2DExactGeometry 1 4
+  Delaunay2DExactGeometry 2 5000
   )
 add_test( Delaunay2DExactGeometry05
-  Delaunay2DExactGeometry 1 5
+  Delaunay2DExactGeometry 2 5000
   )
 add_test( Delaunay2DExactGeometry06
-  Delaunay2DExactGeometry 1 6
+  Delaunay2DExactGeometry 2 5000
   )
 add_test( Delaunay2DExactGeometry07
-  Delaunay2DExactGeometry 1 7
+  Delaunay2DExactGeometry 2 5000
   )
 add_test( Delaunay2DExactGeometry08
-  Delaunay2DExactGeometry 1 8
+  Delaunay2DExactGeometry 2 5000
   )
 add_test( Delaunay2DExactGeometry09
-  Delaunay2DExactGeometry 1 9
+  Delaunay2DExactGeometry 2 5000
   )
 add_test( Delaunay2DExactGeometry10
-  Delaunay2DExactGeometry 1 10
-  )
-
-add_test( Delaunay2DExactGeometry201
-  Delaunay2DExactGeometry 2 20
-  )
-add_test( Delaunay2DExactGeometry202
-  Delaunay2DExactGeometry 2 20
-  )
-add_test( Delaunay2DExactGeometry203
-  Delaunay2DExactGeometry 2 20
-  )
-add_test( Delaunay2DExactGeometry204
-  Delaunay2DExactGeometry 2 20
+  Delaunay2DExactGeometry 2 5000
   )

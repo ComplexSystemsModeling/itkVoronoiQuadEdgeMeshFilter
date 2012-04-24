@@ -79,7 +79,7 @@ DeleteDummyPoints( TMeshType* mesh )
 template< class TMeshType >
 void
 CreateDummyMesh( typename TMeshType::Pointer   mesh, 
-		 typename TMeshType::PixelType limit )
+                 typename TMeshType::PixelType limit )
 {
   // Generate a square triangulated mesh
   //

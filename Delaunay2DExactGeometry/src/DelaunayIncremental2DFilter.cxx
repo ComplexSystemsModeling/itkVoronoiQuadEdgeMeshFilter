@@ -273,25 +273,10 @@ AddPoint( MeshType::Pointer mesh,
     MeshType::QEPrimal* p;  
     p = mesh->AddFaceTriangle( cellPointsIds[0], cellPointsIds[1], pointIndex );
     newCellIds[0] = p->GetLeft();
-    //std::cout << "new cell 1 : " << newCellIds[0] << std::endl;
     p = mesh->AddFaceTriangle( cellPointsIds[1], cellPointsIds[2], pointIndex );  
     newCellIds[1] = p->GetLeft();
-    //std::cout << "new cell 2 : " << newCellIds[1] << std::endl;
     p = mesh->AddFaceTriangle( cellPointsIds[2], cellPointsIds[0], pointIndex );  
     newCellIds[2] = p->GetLeft();
-    //std::cout << "new cell 3 : " << newCellIds[2] << std::endl;
-      
-    // NOTE STEF: Use AddTriangleFace method instead
-    //for( unsigned int i = 0; i < 3; i++ )
-    //  {
-    //  newCellIds[i] = mesh->FindFirstUnusedCellIndex();
-    //  poly = new QEPolygonCellType( 3 );
-    //  cellPointer.TakeOwnership( poly );
-    //  cellPointer->SetPointId( 0, cellPointsIds[ (i)   % 3 ] );
-    //  cellPointer->SetPointId( 1, cellPointsIds[ (i+1) % 3 ] );
-    //  cellPointer->SetPointId( 2, pointIndex                 );
-    //  mesh->SetCell( newCellIds[i], cellPointer );
-    //  } 
           
     RecursiveFlipEdgeTest( mesh, pointIndex, newCellIds[0] );
     RecursiveFlipEdgeTest( mesh, pointIndex, newCellIds[1] );
@@ -354,11 +339,11 @@ DelaunayTriangulation( PointSetType* pointSet )
 //
 template< class TMesh >
 std::vector< typename TMesh::PointType >
-GenerateRandomPointCoordinates( const unsigned int& iN )
+GenerateRandomCoordinates( const unsigned int& iN )
 {
   typedef typename TMesh::PointType        TPointType;
   typedef typename PointType::CoordRepType TCoordRepType;
-  std::vector< TPointType > oPt( iN * iN );
+  std::vector< TPointType > oPt( iN );
   
   // NOTE ALEX: is this cross platform? 
   srand(time(NULL));
@@ -373,6 +358,93 @@ GenerateRandomPointCoordinates( const unsigned int& iN )
 }
 //--------------------------------------------------------------------------------
 
+
+//--------------------------------------------------------------------------------
+// Circle coordonates generation function
+//
+template< class TMesh >
+std::vector< typename TMesh::PointType >
+GenerateCircleCoordinates( const unsigned int& r )
+{
+  typedef typename TMesh::PointType        TPointType;
+  typedef typename PointType::CoordRepType TCoordRepType;
+  std::vector< TPointType > oPt;
+  const float DEG2RAD = 3.14159/180;
+  TPointType p;
+  
+  for( unsigned int i = 0; i < 360; i++ )
+    {
+    float deg = i * DEG2RAD; 
+    p[0] = static_cast< TCoordRepType >( cos(deg)*r );
+    p[1] = static_cast< TCoordRepType >( sin(deg)*r );
+    p[2] = static_cast< TCoordRepType >( 0. );
+    oPt.push_back( p );
+    }
+  return oPt;
+}
+//--------------------------------------------------------------------------------
+
+
+//--------------------------------------------------------------------------------
+// Circle coordonates generation function
+//
+template< class TMesh >
+std::vector< typename TMesh::PointType >
+GenerateConcentricCoordinates( const unsigned int& r )
+{
+  typedef typename TMesh::PointType        TPointType;
+  typedef typename PointType::CoordRepType TCoordRepType;
+  std::vector< TPointType > oPt;
+  const float DEG2RAD = 3.14159/180;
+  TPointType p;
+
+  for( unsigned int j = r; j > 0; j-- )
+    {
+    for( unsigned int i = 0; i < 360; i++ )
+      {
+      float deg = i * DEG2RAD; 
+      p[0] = static_cast< TCoordRepType >( cos(deg)*j );
+      p[1] = static_cast< TCoordRepType >( sin(deg)*j );
+      p[2] = static_cast< TCoordRepType >( 0. );
+      oPt.push_back( p ); 
+      }
+    }
+  p[0] = 0.; p[1] = 0.; p[2] = 0.;
+  oPt.push_back( p ); 
+  return oPt;
+}
+//--------------------------------------------------------------------------------
+
+
+//--------------------------------------------------------------------------------
+// Cross coordonates generation function
+//
+template< class TMesh >
+std::vector< typename TMesh::PointType >
+GenerateCrossCoordinates( const unsigned int& iN )
+{
+  typedef typename TMesh::PointType        TPointType;
+  typedef typename PointType::CoordRepType TCoordRepType;
+  std::vector< TPointType > oPt;
+  TPointType p;
+
+  for( unsigned int i = 0 ; i < 2*iN+1; i=i++ )
+    {
+    p[0] = static_cast< TCoordRepType >( i  );
+    p[1] = static_cast< TCoordRepType >( iN );
+    p[2] = static_cast< TCoordRepType >( 0. );
+    oPt.push_back( p );
+    if( i != iN )
+      {
+      p[0] = static_cast< TCoordRepType >( iN );
+      p[1] = static_cast< TCoordRepType >( i  );
+      p[2] = static_cast< TCoordRepType >( 0. );
+      oPt.push_back( p );
+      }
+    }
+  return oPt;
+}
+//--------------------------------------------------------------------------------
 
 
 //--------------------------------------------------------------------------------
@@ -395,7 +467,7 @@ main( int argc, char* argv[] )
   
   // -------------------------------------------------- 
   // Initialisation
-  
+
   int type = atoi( argv[1] );
   int meshSize = atoi( argv[2] );
   int expectedNumPts = 0;
@@ -405,12 +477,19 @@ main( int argc, char* argv[] )
     {
     case 1 :     
       pts = GeneratePointCoordinates< PointSetType >( meshSize ); 
-      expectedNumPts = meshSize*meshSize;
       break;
     case 2 :
-      pts = GenerateRandomPointCoordinates< PointSetType >( meshSize ); 
-      expectedNumPts = meshSize;
+      pts = GenerateRandomCoordinates< PointSetType >( meshSize ); 
       break;
+    case 3 :
+      pts = GenerateCircleCoordinates< PointSetType >( meshSize );    
+      break;
+    case 4 :
+      pts = GenerateConcentricCoordinates< PointSetType >( meshSize );
+      break;
+    case 5 :
+      pts = GenerateCrossCoordinates< PointSetType >( meshSize );
+      break; 
     default:
       std::cerr << "Exit wrong arguments" << std::endl;
       std::cerr << "Usage - arg[1] [1|2] = [\"reg\"|\"rand\"] - arg[2] int = [rowsize|nbPoint]";
@@ -418,13 +497,14 @@ main( int argc, char* argv[] )
       
       return EXIT_FAILURE;
     }
-  
+
+  expectedNumPts = pts.size();
   PointSetType::Pointer pointSet = PointSetType::New();
   for( int i = 0; i < expectedNumPts ; i++ )
     {
     pointSet->SetPoint( i, pts[i] );
     }
-  
+
   // -------------------------------------------------- 
   // Delaunay Test
   

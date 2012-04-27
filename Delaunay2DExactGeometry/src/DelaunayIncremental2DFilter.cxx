@@ -163,7 +163,7 @@ RecursiveFlipEdgeTest( MeshType::Pointer mesh,
     }
   if( !mesh->GetPoint( point, &pointCoord ) )
     {
-    std::cerr << "Error - Could not find the point given in parameter." << std::endl;
+    std::cerr << "ERROR - Could not find the point given in parameter." << std::endl;
     throw -1;
     }
   
@@ -240,7 +240,7 @@ AddPoint( MeshType::Pointer mesh,
     }
   catch( int e ) 
     {
-    std::cerr << "Error - Exception caught in the WalkInTriangulation process" << std::endl;
+    std::cerr << "ERROR - Exception caught in the WalkInTriangulation process" << std::endl;
     throw -1;
     }
   // NOTE STEF: Use a cleaner way to get the last value of a VectorContainer
@@ -250,7 +250,7 @@ AddPoint( MeshType::Pointer mesh,
   PointIdIterator               pointIdIterator;
   std::vector< CellIdentifier > cellPointsIds( 3 );
   std::vector< CellIdentifier > newCellIds( 3 );
-  QEPolygonCellType             *poly;
+  //QEPolygonCellType             *poly;
   PointIdentifier               pointIndex;
     
   if( mesh->GetCell( cellIndex, cellPointer ) )
@@ -428,7 +428,7 @@ GenerateCrossCoordinates( const unsigned int& iN )
   std::vector< TPointType > oPt;
   TPointType p;
 
-  for( unsigned int i = 0 ; i < 2*iN+1; i=i++ )
+  for( unsigned int i = 0 ; i < 2*iN+1; i++ )
     {
     p[0] = static_cast< TCoordRepType >( i  );
     p[1] = static_cast< TCoordRepType >( iN );

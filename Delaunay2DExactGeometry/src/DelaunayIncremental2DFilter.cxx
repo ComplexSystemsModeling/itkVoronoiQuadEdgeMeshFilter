@@ -10,6 +10,11 @@
 #include "itkQuadEdgeMeshEulerOperatorFlipEdgeFunction.h"
 #include "itkDelaunayConformingQuadEdgeMeshFilter.h"
 
+//--------------
+// itk SimplexMesh
+//#include "itkQuadEdgeMeshToQuadEdgeMeshWithDualFilter.h"
+//#include "itkQuadEdgeMeshWithDualAdaptor.h"
+
 //---------------
 // our code
 #include "itkWalkInTriangulationFunction.h"
@@ -23,6 +28,10 @@
 //--------------
 // temporary
 #include "itkVTKPolyDataWriter.h"
+#include "itkVTKPolyDataReader.h"
+
+//---------------------------------
+// to be incapsulate into itk class
 
 typedef float PixelType;
 const unsigned int Dimensions = 3;
@@ -58,6 +67,8 @@ typedef itk::WalkInTriangulationFunction< MeshType >                       WalkI
 typedef itk::VectorContainer< unsigned int, int >                          CellIdVectorContainerType;
 typedef itk::QuadEdgeMeshPolygonCell< CellType >                           QEPolygonCellType;
 typedef itk::QuadEdgeMeshEulerOperatorFlipEdgeFunction< MeshType, QEType > FlipEdgeFunction;
+//typedef itk::QuadEdgeMeshToQuadEdgeMeshWithDualFilter< MeshType >          FillDualFilterType;
+//typedef itk::QuadEdgeMeshWithDualAdaptor< MeshType >                       DualAdaptorType;
 
 
 //--------------------------------------------------------------------------------
@@ -87,7 +98,7 @@ DeleteDummyPoints( MeshType::Pointer mesh )
 //
 void
 CreateDummyMesh( MeshType::Pointer mesh, 
-                 PixelType limit )
+                 PixelType         limit )
 {
   // Generate a square triangulated mesh
   //
@@ -127,17 +138,11 @@ CreateDummyMesh( MeshType::Pointer mesh,
     mesh->SetPoint( i, pts[i] );
     }
 
-  CellAutoPointer cellpointer;
-  QEPolygonCellType *poly;
-
   for( i = 0; i < expectedNumCells; i++ )
     {
-    poly = new QEPolygonCellType( 3 );
-    cellpointer.TakeOwnership( poly );
-    cellpointer->SetPointId( 0, simpleTriangleCells[i*3]   );
-    cellpointer->SetPointId( 1, simpleTriangleCells[i*3+1] );
-    cellpointer->SetPointId( 2, simpleTriangleCells[i*3+2] );
-    mesh->SetCell( i, cellpointer );
+    mesh->AddFaceTriangle( simpleTriangleCells[ i*3     ], 
+		           simpleTriangleCells[ i*3 + 1 ], 
+			   simpleTriangleCells[ i*3 + 2 ] );
     }  
 }
 //--------------------------------------------------------------------------------
@@ -146,8 +151,8 @@ CreateDummyMesh( MeshType::Pointer mesh,
 //--------------------------------------------------------------------------------
 MeshType::Pointer
 RecursiveFlipEdgeTest( MeshType::Pointer mesh, 
-                       PointIdentifier point, 
-                       CellIdentifier  cell )
+                       PointIdentifier   point, 
+                       CellIdentifier    cell )
 {
   CellAutoPointer      cellpointer;
   PointType            pointCoord;
@@ -183,6 +188,7 @@ RecursiveFlipEdgeTest( MeshType::Pointer mesh,
     i++;
     }
   
+  // Border edge test
   QEType* e = mesh->FindEdge( p[(r+1)%3], p[(r+2)%3] );
   if( e->IsAtBorder() )
     {
@@ -190,6 +196,7 @@ RecursiveFlipEdgeTest( MeshType::Pointer mesh,
     }
   
   DualOriginRefType adjCell = e->GetRight();
+  // NOTE STEF: Temporary check
   if( adjCell == cell )
     {
     adjCell = e->GetLeft();
@@ -209,6 +216,9 @@ RecursiveFlipEdgeTest( MeshType::Pointer mesh,
     j++;
     }
 
+  // PointInCircle test
+  // If positive, flip edge and recursively check the new created cell
+  //
   // NOTE STEF: the boolean parameter of the test should be remove in a near future  
   if( TestPointInTriangleInMesh< MeshType >( mesh, adjCell, pointCoord, true ) ) 
     {
@@ -229,9 +239,11 @@ RecursiveFlipEdgeTest( MeshType::Pointer mesh,
 //--------------------------------------------------------------------------------
 PointIdentifier
 AddPoint( MeshType::Pointer mesh, 
-          PointType point, 
-          CellIdentifier startingCell )
+          PointType         point, 
+          CellIdentifier    startingCell )
 {
+  
+  // Walk the mesh to find the cell containing the new point to add	
   WalkInTriangulationFunction::Pointer walk       = WalkInTriangulationFunction::New();
   CellIdVectorContainerType::Pointer   cellIdList = CellIdVectorContainerType::New();
   try 
@@ -250,14 +262,11 @@ AddPoint( MeshType::Pointer mesh,
   PointIdIterator               pointIdIterator;
   std::vector< CellIdentifier > cellPointsIds( 3 );
   std::vector< CellIdentifier > newCellIds( 3 );
-  //QEPolygonCellType             *poly;
   PointIdentifier               pointIndex;
-    
+   
+  // Split the cell in 3 new cell 
   if( mesh->GetCell( cellIndex, cellPointer ) )
-    { 
-      
-    mesh->GetCell( cellIndex, cellPointer );
-
+    {      
     pointIdIterator  = cellPointer->PointIdsBegin();
     cellPointsIds[0] = *pointIdIterator;
     pointIdIterator++;
@@ -278,6 +287,7 @@ AddPoint( MeshType::Pointer mesh,
     p = mesh->AddFaceTriangle( cellPointsIds[2], cellPointsIds[0], pointIndex );  
     newCellIds[2] = p->GetLeft();
           
+    // Check the delaunay criterion 
     RecursiveFlipEdgeTest( mesh, pointIndex, newCellIds[0] );
     RecursiveFlipEdgeTest( mesh, pointIndex, newCellIds[1] );
     RecursiveFlipEdgeTest( mesh, pointIndex, newCellIds[2] );
@@ -296,7 +306,8 @@ DelaunayTriangulation( PointSetType* pointSet )
 
   MeshType::Pointer mesh = MeshType::New();
 
-  PixelType infinity = pow( 10, 10 ); // NOTE STEF: This is not infinity
+  // NOTE STEF: Replace by true infinity
+  PixelType infinity = pow( 10, 10 );
   CreateDummyMesh( mesh, infinity );
 
   InputPointsContainer              *points           = pointSet->GetPoints();
@@ -349,11 +360,11 @@ GenerateRandomCoordinates( const unsigned int& iN )
   srand(time(NULL));
   
   for( unsigned int i = 0; i < iN; i++ )
-  {
+    {
     oPt[ i ][0] = static_cast< TCoordRepType >( rand() % 9000 - 4500 );
     oPt[ i ][1] = static_cast< TCoordRepType >( rand() % 9000 - 4500 );
     oPt[ i ][2] = static_cast< TCoordRepType >( 0. );
-  }
+    }
   return oPt;
 }
 //--------------------------------------------------------------------------------
@@ -369,7 +380,7 @@ GenerateCircleCoordinates( const unsigned int& r )
   typedef typename TMesh::PointType        TPointType;
   typedef typename PointType::CoordRepType TCoordRepType;
   std::vector< TPointType > oPt;
-  const float DEG2RAD = 3.14159/180;
+  const float DEG2RAD = 3.14159 / 180;
   TPointType p;
   
   for( unsigned int i = 0; i < 360; i++ )
@@ -386,7 +397,7 @@ GenerateCircleCoordinates( const unsigned int& r )
 
 
 //--------------------------------------------------------------------------------
-// Circle coordonates generation function
+// Concentric Circle coordonates generation function
 //
 template< class TMesh >
 std::vector< typename TMesh::PointType >
@@ -395,7 +406,7 @@ GenerateConcentricCoordinates( const unsigned int& r )
   typedef typename TMesh::PointType        TPointType;
   typedef typename PointType::CoordRepType TCoordRepType;
   std::vector< TPointType > oPt;
-  const float DEG2RAD = 3.14159/180;
+  const float DEG2RAD = 3.14159 / 180;
   TPointType p;
 
   for( unsigned int j = r; j > 0; j-- )
@@ -463,16 +474,19 @@ main( int argc, char* argv[] )
     }
   
   typedef itk::DelaunayConformingQuadEdgeMeshFilter< MeshType, MeshType > ValidityTestType;
-  typedef itk::VTKPolyDataWriter< MeshType >                              MeshWriter;
-  
-  // -------------------------------------------------- 
-  // Initialisation
+  typedef itk::VTKPolyDataWriter< MeshType >                              MeshWriterType;
 
   int type = atoi( argv[1] );
   int meshSize = atoi( argv[2] );
   int expectedNumPts = 0;
   std::vector< InputPointType > pts;
   
+  PointSetType::Pointer pointSet = PointSetType::New();
+  MeshType::Pointer triangulatedMesh = MeshType::New();
+      
+  // -------------------------------------------------
+  // Toy Point Set creation
+
   switch(type) 
     {
     case 1 :     
@@ -489,7 +503,7 @@ main( int argc, char* argv[] )
       break;
     case 5 :
       pts = GenerateCrossCoordinates< PointSetType >( meshSize );
-      break; 
+      break;
     default:
       std::cerr << "Exit wrong arguments" << std::endl;
       std::cerr << "Usage - arg[1] [1|2] = [\"reg\"|\"rand\"] - arg[2] int = [rowsize|nbPoint]";
@@ -499,16 +513,14 @@ main( int argc, char* argv[] )
     }
 
   expectedNumPts = pts.size();
-  PointSetType::Pointer pointSet = PointSetType::New();
   for( int i = 0; i < expectedNumPts ; i++ )
     {
     pointSet->SetPoint( i, pts[i] );
     }
 
   // -------------------------------------------------- 
-  // Delaunay Test
+  // Delaunay Construction
   
-  MeshType::Pointer triangulatedMesh = MeshType::New();
   try
     {
     triangulatedMesh = DelaunayTriangulation( pointSet );
@@ -519,11 +531,14 @@ main( int argc, char* argv[] )
     return EXIT_FAILURE;
     }
   
-  MeshWriter::Pointer write = MeshWriter::New();
+  MeshWriterType::Pointer write = MeshWriterType::New();
   write->SetFileName("./OutputDelaunayMesh.vtk");
   write->SetInput( triangulatedMesh );
   write->Update();
-  
+ 
+  // -------------------------------------------------
+  // Delaunay Validation
+
   ValidityTestType::Pointer test = ValidityTestType::New();
   test->SetInput( triangulatedMesh );
   test->GraftOutput( triangulatedMesh );
@@ -533,7 +548,33 @@ main( int argc, char* argv[] )
     {
     return EXIT_FAILURE;
     }
-  
+ 
+  // -------------------------------------------------
+  // Delaunay Dual => Voronoi
+
+  //FillDualFilterType::Pointer fillDual = FillDualFilterType::New();
+  //fillDual->SetInput( triangulatedMesh );
+  //try
+  //  {
+  //  fillDual->Update();
+  //  }
+  //catch( ... )
+  //  {
+  //  return EXIT_FAILURE;
+  //  }
+
+  //DualAdaptorType* adaptor = new DualAdaptorType();
+  //adaptor->SetInput( fillDual->GetOutput() );
+
+  //DualMeshWriterType::Pointer dualwrite = DualMeshWriterType::New();
+  //dualwrite->SetFileName("./OutputVoronoiTesselation.vtk");
+  //dualwrite->SetInput( adaptor );
+  //dualwrite->Update();
+
+  // ------------------------------------------------
+  // End process ... by by
+
   return EXIT_SUCCESS;
+
 }
 //--------------------------------------------------------------------------------

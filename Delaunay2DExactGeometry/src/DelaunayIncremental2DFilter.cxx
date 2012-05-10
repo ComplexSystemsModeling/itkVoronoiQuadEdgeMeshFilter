@@ -12,8 +12,8 @@
 
 //--------------
 // itk SimplexMesh
-//#include "itkQuadEdgeMeshToQuadEdgeMeshWithDualFilter.h"
-//#include "itkQuadEdgeMeshWithDualAdaptor.h"
+#include "itkQuadEdgeMeshToQuadEdgeMeshWithDualFilter.h"
+#include "itkQuadEdgeMeshWithDualAdaptor.h"
 
 //---------------
 // our code
@@ -32,43 +32,68 @@
 
 //---------------------------------
 // to be incapsulate into itk class
+namespace itk
+{
+// TODO
+// - PointSetSource class
+// - pointsetToPointSetFilter class (inherits from PointSetSource)
+// - QuadEdgeMeshSource class (does it exists already?)
+// - rewire QuadEdgeMeshToQuadEdgeMeshFilter to use the class above.
+//
+// - Write GenerateData()
+// - use superclass GenerateData() to copy input to output then work with getOutput()
 
-typedef float PixelType;
-const unsigned int Dimensions = 3;
+template< class TInMesh, class TOutMesh=TInMesh >
+class PointSetToDelaunayTriangulationFilter
+ : public QuadEdgeMeshToQuadEdgeMeshFilter< TInMesh, TOutMesh >
+{
+public:
+  typedef PointSetToDelaunayTriangulationFilter                       Self;
+  typedef SmartPointer< Self >                                        Pointer;
+  typedef SmartPointer< const Self >                                  ConstPointer;
+  typedef QuadEdgeMeshToQuadEdgeMeshFilter< TInMesh, TOutMesh > Superclass;
 
-typedef itk::PointSet< PixelType, Dimensions >      PointSetType;
+  /** Run-time type information (and related methods).   */
+  itkTypeMacro(PointSetToDelaunayTriangulationFilter, QuadEdgeMeshToQuadEdgeMeshFilter);
 
-typedef PointSetType::PointType                     InputPointType;
-typedef PointSetType::PointIdentifier               InputPointIdentifier;
-typedef PointSetType::PointsContainer               InputPointsContainer;
-typedef PointSetType::PointsContainerConstIterator  InputPointsContainerConstIterator;
+  /** New macro for creation of through a Smart Pointer   */
+  itkNewMacro(Self);
 
-typedef itk::QuadEdgeMesh< PixelType, Dimensions >  MeshType;
+  typedef float PixelType;
+  static const unsigned int Dimensions = 3;
 
-typedef MeshType::PixelType                         PixelType;
-typedef MeshType::PointType                         PointType;
-typedef MeshType::CellType                          CellType;
-typedef MeshType::PointIdentifier                   PointIdentifier;
-typedef MeshType::CellIdentifier                    CellIdentifier;
-typedef MeshType::PointsContainer                   PointsContainer;
-typedef MeshType::CellsContainer                    CellsContainer;
-typedef MeshType::PointIdList                       PointIdList;
-typedef MeshType::QEType                            QEType;
-typedef MeshType::CellsContainerIterator            CellsContainerIteratorType;
-typedef MeshType::PointsContainerConstIterator      PointsContainerConstIterator;
+  typedef itk::PointSet< PixelType, Dimensions >      PointSetType;
 
-typedef CellType::PointIdConstIterator              PointIdConstIterator;
-typedef CellType::PointIdIterator                   PointIdIterator;
-typedef CellType::CellAutoPointer                   CellAutoPointer;
+  typedef PointSetType::PointType                     InputPointType;
+  typedef PointSetType::PointIdentifier               InputPointIdentifier;
+  typedef PointSetType::PointsContainer               InputPointsContainer;
+  typedef PointSetType::PointsContainerConstIterator  InputPointsContainerConstIterator;
 
-typedef QEType::DualOriginRefType                   DualOriginRefType;
+  typedef itk::QuadEdgeMesh< PixelType, Dimensions >  MeshType;
 
-typedef itk::WalkInTriangulationFunction< MeshType >                       WalkInTriangulationFunction;
-typedef itk::VectorContainer< unsigned int, int >                          CellIdVectorContainerType;
-typedef itk::QuadEdgeMeshPolygonCell< CellType >                           QEPolygonCellType;
-typedef itk::QuadEdgeMeshEulerOperatorFlipEdgeFunction< MeshType, QEType > FlipEdgeFunction;
-//typedef itk::QuadEdgeMeshToQuadEdgeMeshWithDualFilter< MeshType >          FillDualFilterType;
-//typedef itk::QuadEdgeMeshWithDualAdaptor< MeshType >                       DualAdaptorType;
+  typedef MeshType::PointType                         PointType;
+  typedef MeshType::CellType                          CellType;
+  typedef MeshType::PointIdentifier                   PointIdentifier;
+  typedef MeshType::CellIdentifier                    CellIdentifier;
+  typedef MeshType::PointsContainer                   PointsContainer;
+  typedef MeshType::CellsContainer                    CellsContainer;
+  typedef MeshType::PointIdList                       PointIdList;
+  typedef MeshType::QEType                            QEType;
+  typedef MeshType::CellsContainerIterator            CellsContainerIteratorType;
+  typedef MeshType::PointsContainerConstIterator      PointsContainerConstIterator;
+
+  typedef CellType::PointIdConstIterator              PointIdConstIterator;
+  typedef CellType::PointIdIterator                   PointIdIterator;
+  typedef CellType::CellAutoPointer                   CellAutoPointer;
+
+  typedef QEType::DualOriginRefType                   DualOriginRefType;
+
+  typedef itk::WalkInTriangulationFunction< MeshType >                       WalkInTriangulationFunction;
+  typedef itk::VectorContainer< unsigned int, int >                          CellIdVectorContainerType;
+  typedef itk::QuadEdgeMeshPolygonCell< CellType >                           QEPolygonCellType;
+  typedef itk::QuadEdgeMeshEulerOperatorFlipEdgeFunction< MeshType, QEType > FlipEdgeFunction;
+  //typedef itk::QuadEdgeMeshToQuadEdgeMeshWithDualFilter< MeshType >          FillDualFilterType;
+  //typedef itk::QuadEdgeMeshWithDualAdaptor< MeshType >                       DualAdaptorType;
 
 
 //--------------------------------------------------------------------------------
@@ -343,6 +368,8 @@ DelaunayTriangulation( PointSetType* pointSet )
   return mesh;
 }
 //--------------------------------------------------------------------------------
+};
+} // endof namespace
 
 
 //--------------------------------------------------------------------------------
@@ -352,8 +379,8 @@ template< class TMesh >
 std::vector< typename TMesh::PointType >
 GenerateRandomCoordinates( const unsigned int& iN )
 {
-  typedef typename TMesh::PointType        TPointType;
-  typedef typename PointType::CoordRepType TCoordRepType;
+  typedef typename TMesh::PointType         TPointType;
+  typedef typename TPointType::CoordRepType TCoordRepType;
   std::vector< TPointType > oPt( iN );
   
   // NOTE ALEX: is this cross platform? 
@@ -377,8 +404,8 @@ template< class TMesh >
 std::vector< typename TMesh::PointType >
 GenerateCircleCoordinates( const unsigned int& r )
 {
-  typedef typename TMesh::PointType        TPointType;
-  typedef typename PointType::CoordRepType TCoordRepType;
+  typedef typename TMesh::PointType         TPointType;
+  typedef typename TPointType::CoordRepType TCoordRepType;
   std::vector< TPointType > oPt;
   const float DEG2RAD = 3.14159 / 180;
   TPointType p;
@@ -403,8 +430,8 @@ template< class TMesh >
 std::vector< typename TMesh::PointType >
 GenerateConcentricCoordinates( const unsigned int& r )
 {
-  typedef typename TMesh::PointType        TPointType;
-  typedef typename PointType::CoordRepType TCoordRepType;
+  typedef typename TMesh::PointType         TPointType;
+  typedef typename TPointType::CoordRepType TCoordRepType;
   std::vector< TPointType > oPt;
   const float DEG2RAD = 3.14159 / 180;
   TPointType p;
@@ -434,8 +461,8 @@ template< class TMesh >
 std::vector< typename TMesh::PointType >
 GenerateCrossCoordinates( const unsigned int& iN )
 {
-  typedef typename TMesh::PointType        TPointType;
-  typedef typename PointType::CoordRepType TCoordRepType;
+  typedef typename TMesh::PointType         TPointType;
+  typedef typename TPointType::CoordRepType TCoordRepType;
   std::vector< TPointType > oPt;
   TPointType p;
 
@@ -457,7 +484,6 @@ GenerateCrossCoordinates( const unsigned int& iN )
 }
 //--------------------------------------------------------------------------------
 
-
 //--------------------------------------------------------------------------------
 // Main function
 //
@@ -472,7 +498,12 @@ main( int argc, char* argv[] )
     
     return EXIT_FAILURE;
     }
-  
+
+  typedef float PixelType;
+  static const unsigned int Dimensions = 3;
+  typedef itk::QuadEdgeMesh< PixelType, Dimensions >      MeshType;
+  typedef MeshType::PointType                             InputPointType;
+
   typedef itk::DelaunayConformingQuadEdgeMeshFilter< MeshType, MeshType > ValidityTestType;
   typedef itk::VTKPolyDataWriter< MeshType >                              MeshWriterType;
 
@@ -481,6 +512,7 @@ main( int argc, char* argv[] )
   int expectedNumPts = 0;
   std::vector< InputPointType > pts;
   
+  typedef itk::PointSet< PixelType, Dimensions >      PointSetType;
   PointSetType::Pointer pointSet = PointSetType::New();
   MeshType::Pointer triangulatedMesh = MeshType::New();
       
@@ -490,19 +522,19 @@ main( int argc, char* argv[] )
   switch(type) 
     {
     case 1 :     
-      pts = GeneratePointCoordinates< PointSetType >( meshSize ); 
+      pts = GeneratePointCoordinates< MeshType >( meshSize ); 
       break;
     case 2 :
-      pts = GenerateRandomCoordinates< PointSetType >( meshSize ); 
+      pts = GenerateRandomCoordinates< MeshType >( meshSize ); 
       break;
     case 3 :
-      pts = GenerateCircleCoordinates< PointSetType >( meshSize );    
+      pts = GenerateCircleCoordinates< MeshType >( meshSize );    
       break;
     case 4 :
-      pts = GenerateConcentricCoordinates< PointSetType >( meshSize );
+      pts = GenerateConcentricCoordinates< MeshType >( meshSize );
       break;
     case 5 :
-      pts = GenerateCrossCoordinates< PointSetType >( meshSize );
+      pts = GenerateCrossCoordinates< MeshType >( meshSize );
       break;
     default:
       std::cerr << "Exit wrong arguments" << std::endl;
@@ -520,10 +552,11 @@ main( int argc, char* argv[] )
 
   // -------------------------------------------------- 
   // Delaunay Construction
-  
+  typedef itk::PointSetToDelaunayTriangulationFilter< MeshType > myFilterType;
+  myFilterType::Pointer myFilter = myFilterType::New();
   try
     {
-    triangulatedMesh = DelaunayTriangulation( pointSet );
+    triangulatedMesh = myFilter->DelaunayTriangulation( pointSet );
     }
   catch( int e ) 
     {
@@ -548,28 +581,28 @@ main( int argc, char* argv[] )
     {
     return EXIT_FAILURE;
     }
- 
+
   // -------------------------------------------------
   // Delaunay Dual => Voronoi
 
-  //FillDualFilterType::Pointer fillDual = FillDualFilterType::New();
-  //fillDual->SetInput( triangulatedMesh );
-  //try
-  //  {
-  //  fillDual->Update();
-  //  }
-  //catch( ... )
-  //  {
-  //  return EXIT_FAILURE;
-  //  }
+  FillDualFilterType::Pointer fillDual = FillDualFilterType::New();
+  fillDual->SetInput( triangulatedMesh );
+  try
+    {
+    fillDual->Update();
+    }
+  catch( ... )
+    {
+    return EXIT_FAILURE;
+    }
 
-  //DualAdaptorType* adaptor = new DualAdaptorType();
-  //adaptor->SetInput( fillDual->GetOutput() );
+  DualAdaptorType* adaptor = new DualAdaptorType();
+  adaptor->SetInput( fillDual->GetOutput() );
 
-  //DualMeshWriterType::Pointer dualwrite = DualMeshWriterType::New();
-  //dualwrite->SetFileName("./OutputVoronoiTesselation.vtk");
-  //dualwrite->SetInput( adaptor );
-  //dualwrite->Update();
+  DualMeshWriterType::Pointer dualwrite = DualMeshWriterType::New();
+  dualwrite->SetFileName("./OutputVoronoiTesselation.vtk");
+  dualwrite->SetInput( adaptor );
+  dualwrite->Update();
 
   // ------------------------------------------------
   // End process ... by by

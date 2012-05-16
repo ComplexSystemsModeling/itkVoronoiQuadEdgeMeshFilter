@@ -12,8 +12,11 @@ include_directories( ${WalkInTriangulation_DIR} )
 # add source file
 #
 set( Delaunay2DExactGeometry_src
-  src/DelaunayIncremental2DFilter.cxx	
-  #src/Delaunay2DExactGeometryFilter.cxx
+  src/DelaunayIncremental.cxx	
+  src/itkPointSetToDelaunayTriangulationFilter.hxx
+  src/itkPointSetSource.hxx
+  src/itkPointSetToPointSetFilter.hxx
+  src/itkQuadEdgeMeshSource.hxx
   ${predicates.c_location}
   )
 
@@ -22,6 +25,11 @@ set( Delaunay2DExactGeometry_src
 set( Delaunay2DExactGeometry_header
   ${WalkInTriangulation_DIR}/itkWalkInTriangulationFunction.h
   ${PointInCircle_DIR}/itkPointInCircleGeometricalPredicateFunctor.h
+  src/itkPointSetToDelaunayTriangulationFilter.h
+  src/itkPointSetSource.h
+  src/itkPointSetToPointSetFilter.h
+  src/itkQuadEdgeMeshSource.h
+  src/itkPointSetToDelaunayTriangulationFilter.h
   )
 
 # if generat by Xcode add headers to executable
@@ -48,32 +56,20 @@ target_link_libraries( Delaunay2DExactGeometry
 include( CTest )
 
 add_test( Delaunay2DExactGeometry01
-  Delaunay2DExactGeometry 1 20
+  Delaunay2DExactGeometry 1 10
   )
 add_test( Delaunay2DExactGeometry02
-  Delaunay2DExactGeometry 2 5000
+  Delaunay2DExactGeometry 1 20
   )
 add_test( Delaunay2DExactGeometry03
-  Delaunay2DExactGeometry 2 5000
+  Delaunay2DExactGeometry 2 50
   )
 add_test( Delaunay2DExactGeometry04
-  Delaunay2DExactGeometry 2 5000
+  Delaunay2DExactGeometry 2 500
   )
 add_test( Delaunay2DExactGeometry05
-  Delaunay2DExactGeometry 2 5000
+  Delaunay2DExactGeometry 2 1000
   )
 add_test( Delaunay2DExactGeometry06
-  Delaunay2DExactGeometry 2 5000
-  )
-add_test( Delaunay2DExactGeometry07
-  Delaunay2DExactGeometry 2 5000
-  )
-add_test( Delaunay2DExactGeometry08
-  Delaunay2DExactGeometry 2 5000
-  )
-add_test( Delaunay2DExactGeometry09
-  Delaunay2DExactGeometry 2 5000
-  )
-add_test( Delaunay2DExactGeometry10
-  Delaunay2DExactGeometry 2 5000
+  Delaunay2DExactGeometry 2 2000
   )

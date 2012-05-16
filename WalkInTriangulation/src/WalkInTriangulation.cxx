@@ -20,6 +20,8 @@
 *                                                                               *
 *===============================================================================*/
 
+//--------------------------------------------------------
+// ITK includes
 #include "itkPointSet.h"
 #include "itkQuadEdgeMesh.h"
 #include "itkQuadEdgeMeshTraits.h"
@@ -27,8 +29,12 @@
 #include "itkVectorContainer.h"
 #include "itkQuadEdgeMeshEulerOperatorsTestHelper.h"
  
+//--------------------------------------------------------
+// Our includes
 #include "itkWalkInTriangulationFunction.h"
 
+//--------------------------------------------------------
+// STD includes
 #include <iostream>
 
 int main( int argc, char * argv[] )
@@ -57,38 +63,41 @@ int main( int argc, char * argv[] )
 
   typedef itk::QuadEdgeMesh< double, 3 >  QEMeshType;
   typedef QEMeshType::PointType           PointType;
-  typedef QEMeshType::CellIdentifier      CellIdentifier;
+  typedef QEMeshType::FaceRefType      FaceRefType;
   
-  typedef itk::VectorContainer< unsigned int, int > VectorContainerType;
+  typedef itk::VectorContainer< unsigned int, FaceRefType > VectorContainerType;
   
   // -----------------------------------------------------
-  // Initialisation mesh
-      
+  // Initialisation of toy mesh 
+  // -----------------------------------------------------    
+  
   QEMeshType::Pointer mesh = QEMeshType::New();
   CreateSquareTriangularMesh< QEMeshType >( mesh );
 
-  std::cout<<"\nNo. of Cells : "<<mesh->GetNumberOfCells()
-           <<"\nNo. of Edges : "<<mesh->GetNumberOfEdges()
-           <<"\nNo. of Faces : "<<mesh->GetNumberOfFaces()
-           <<"\nNo. of Points : "<<mesh->GetNumberOfPoints()<<"\n\n";
+  std::cout << std::endl << "No. of Cells  : " << mesh->GetNumberOfCells();
+  std::cout << std::endl << "No. of Edges  : " << mesh->GetNumberOfEdges();
+  std::cout << std::endl << "No. of Faces  : " << mesh->GetNumberOfFaces();
+  std::cout << std::endl << "No. of Points : " << mesh->GetNumberOfPoints();
+  std::cout << std::endl << std::endl;
 
   // -----------------------------------------------------
-  // WalkInTriangulation 
+  // WalkInTriangulation process
+  // ----------------------------------------------------- 
   
-  PointType      pts;
-  CellIdentifier cell;
+  PointType   pts;
+  FaceRefType cell;
   
   pts[0] = atof( argv[1] ); 
   pts[1] = atof( argv[2] ); 
-  cell   = atoi( argv[3] );
+  cell.first = atoi( argv[3] );
   
   VectorContainerType::Pointer resultPath = VectorContainerType::New();
   itk::WalkInTriangulationFunction< QEMeshType >::Pointer myFunction = 
-	  itk::WalkInTriangulationFunction< QEMeshType >::New();
+                 itk::WalkInTriangulationFunction< QEMeshType >::New();
 
   try
     { 
-    resultPath = myFunction->Evaluate( mesh, pts, cell );
+    resultPath = myFunction->Evaluate( mesh, pts, &cell );
     }
   catch( int e )
     {
@@ -96,25 +105,28 @@ int main( int argc, char * argv[] )
     }
 
   std::cout << "The point (" << pts[0] << ";" << pts[1] << ") is in the cell id ";
-  std::cout << resultPath->GetElement( resultPath->Size()-1 ) << std::endl;
+  std::cout << resultPath->GetElement( resultPath->Size()-1 ).first << std::endl;
   
   // -----------------------------------------------------
-  // Validation 
+  // WalkInTriangulation Validation 
+  // -----------------------------------------------------
   
   if( argc > 5 )
     {
     std::cout << "expected path : ";
     VectorContainerType::Pointer expectedPath = VectorContainerType::New();
+    FaceRefType tempRef;
     for( unsigned int i = 0; i < (unsigned int)atoi( argv[4] ); i++ )
       {
-      expectedPath->InsertElement(i,atoi(argv[5+i]));
+      tempRef.first = atoi(argv[5+i]);
+      expectedPath->InsertElement(i,tempRef);
       std::cout << argv[5+i] << " ";
       }
     std::cout << "\nresult path : ";
     VectorContainerType::Iterator ite = resultPath->Begin();
     while( ite != resultPath->End() )
       {
-      std::cout << ite.Value() << " ";
+      std::cout << ite.Value().first << " ";
       ++ite;
       }
     std::cout << std::endl;

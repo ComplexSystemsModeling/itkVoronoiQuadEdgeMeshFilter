@@ -24,30 +24,39 @@
 #ifndef __itkWalkInTriangulationFunction_h__
 #define __itkWalkInTriangulationFunction_h__
 
+//---------------------------------------------------  
+// ITK includes
 #include "itkPointSet.h"
 #include "itkVectorContainer.h"
-
 #include "itkQuadEdgeMesh.h"
 #include "itkQuadEdgeMeshTraits.h"
 #include "itkQuadEdgeMeshPolygonCell.h"
 #include "itkQuadEdgeMeshFunctionBase.h"
 
+//---------------------------------------------------  
+// Our includes
 #include "itkPointInCircleGeometricalPredicateFunctor.h"
 
+//---------------------------------------------------  
+// STD includes
 #include <iostream>
 
 namespace itk
 {
+// TODO
+// * Check Dual/Primal new data structure
 
-//
+
+//---------------------------------------------------  
 // WalkInTriangulation Function
-//
-
+//--------------------------------------------------- 
+  
 template<
-  class    TMeshType, 
-  typename TOutputType = itk::VectorContainer< unsigned int, int >::Pointer
+  class TMeshType, 
+  class TOutputType = 
+	typename VectorContainer< unsigned int, typename TMeshType::FaceRefType >::Pointer
   >
-class WalkInTriangulationFunction: public QuadEdgeMeshFunctionBase< TMeshType, TOutputType >
+class WalkInTriangulationFunction : public QuadEdgeMeshFunctionBase< TMeshType, TOutputType >
 {
 
 public:
@@ -57,7 +66,10 @@ public:
   typedef SmartPointer< Self >                                Pointer;
   typedef SmartPointer< const Self >                          ConstPointer;
 
-  itkNewMacro( WalkInTriangulationFunction );
+  /** New macro for creation of through a Smart Pointer   */
+  itkNewMacro( Self );
+
+  /** Run-time type information (and related methods).    */
   itkTypeMacro( WalkInTriangulationFunction, QuadEdgeMeshFunctionBase );
 
   typedef          TMeshType                        MeshType;
@@ -71,6 +83,8 @@ public:
   typedef typename MeshType::PointIdList            PointIdList;
   typedef typename MeshType::QEType                 QuadEdgeType;
   typedef typename MeshType::CellsContainerIterator CellsContainerIteratorType;
+  
+  typedef typename MeshType::FaceRefType FaceRefType;
 
   typedef typename CellType::PointIdConstIterator   PointIdConstIterator;
   typedef typename CellType::PointIdIterator        PointIdIterator;
@@ -78,46 +92,46 @@ public:
 
   typedef typename QuadEdgeType::DualOriginRefType DualOriginRefType;
 
-  typedef VectorContainer< unsigned int, int > VectorContainerType;
+  typedef VectorContainer< unsigned int, FaceRefType > VectorContainerType;
 
   TOutputType Evaluate( 
     MeshTypePointer myMesh,
     const PointType& myPts, 
-    const CellIdentifier& myCell = 0
+    const FaceRefType* myCell = NULL
     )
   {
  
-  // 
+  //--------------------------------------------------- 
   // Initialisation
-  //
+  //--------------------------------------------------
 	 
-  CellAutoPointer             myCellPointer;  
-  CellsContainer              *myCellsContainer = myMesh->GetCells();
-  CellsContainerIteratorType  myCellIterator;
-  CellIdentifier              myCellIndex;
-  CellIdentifier              myOldCellIndex;
+  CellAutoPointer            myCellPointer;  
+  CellsContainer             *myCellsContainer = myMesh->GetCells();
+  CellsContainerIteratorType myCellIterator;
+  FaceRefType                myCellIndex;
+  FaceRefType                myOldCellIndex;
 
   PointType destination = myPts;
   unsigned int triangleVisitedCompter = 0;
   unsigned int orientationTestCompter = 0;
 
-  VectorContainerType::Pointer path = VectorContainerType::New();
+  typename VectorContainerType::Pointer path = VectorContainerType::New();
 
-  if( myCell > 0 )
+  if( myCell != NULL )
     { 
-    myCellIndex = myCell ;
+    myCellIndex = *myCell ;
     }
   else // Default start
     { 
     myCellIterator = myCellsContainer->Begin();
-    myCellIndex = myCellIterator.Index();
+    myCellIndex.first = myCellIterator.Index();
     }
   
-  // 
+  //-------------------------------------------------- 
   // WalkInTriangulation Algorithm
-  //
+  //--------------------------------------------------
 	 
-  if( myMesh->GetCell( myCellIndex, myCellPointer ) )
+  if( myMesh->GetCell( myCellIndex.first, myCellPointer ) )
     { 
     PointType pointQ, pointA, pointB, pointC;
     PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
@@ -147,7 +161,7 @@ public:
         if( myMesh->FindEdge( pointIdQ, pointIdC )->IsAtBorder() )
           {
           throw -1;
-          myCellIndex = -1; 
+          myCellIndex.first = -1; 
           break;
           }
         else
@@ -168,7 +182,7 @@ public:
         path->InsertElement( triangleVisitedCompter, myCellIndex );
         triangleVisitedCompter += 1;
 
-        if( myMesh->GetCell( myCellIndex, myCellPointer) )
+        if( myMesh->GetCell( myCellIndex.first, myCellPointer) )
           {
           PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
           pointIdC = *pointIdIterator;
@@ -198,7 +212,7 @@ public:
         if( myMesh->FindEdge( pointIdQ, pointIdB )->IsAtBorder() )
           {
 	  throw -1;
-          myCellIndex = -1; 
+          myCellIndex.first = -1; 
           break;
           }
         else
@@ -218,7 +232,7 @@ public:
         path->InsertElement( triangleVisitedCompter, myCellIndex );
         triangleVisitedCompter += 1;
  
-        if( myMesh->GetCell( myCellIndex, myCellPointer) )
+        if( myMesh->GetCell( myCellIndex.first, myCellPointer) )
           {
           PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
           pointIdB = *pointIdIterator;
@@ -242,8 +256,8 @@ public:
       orientationTestCompter += 1;
       if( myMesh->FindEdge( pointIdC, pointIdB )->IsAtBorder() )
         {
-	throw -1;
-        myCellIndex = -1; 
+        throw -1;
+        myCellIndex.first = -1; 
         break;
         }
       else
@@ -262,7 +276,7 @@ public:
         }
       path->InsertElement( triangleVisitedCompter, myCellIndex );
       triangleVisitedCompter += 1;
-      if( myMesh->GetCell( myCellIndex, myCellPointer) )
+      if( myMesh->GetCell( myCellIndex.first, myCellPointer) )
         {
         PointIdIterator pointIdIterator = myCellPointer->PointIdsBegin();
         pointIdA = *pointIdIterator;
@@ -295,10 +309,15 @@ public:
   else
     {
     throw -2;
-    myCellIndex = -2;
+    myCellIndex.first = -2;
     path->InsertElement( triangleVisitedCompter, myCellIndex );
     triangleVisitedCompter += 1;
     }
+
+  //--------------------------------------------------
+  // Return path value
+  //--------------------------------------------------
+  
   return path;
   }
 

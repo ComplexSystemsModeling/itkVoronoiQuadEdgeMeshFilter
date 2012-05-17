@@ -40,7 +40,8 @@ namespace itk
 	
 // TODO
 // - rewire QuadEdgeMeshToQuadEdgeMeshFilter to use the class above.
-//
+
+// INPROGRESS
 // - Write GenerateData()
 // - use superclass GenerateData() to copy input to output then work with getOutput()
 
@@ -103,12 +104,30 @@ public:
   typedef itk::VectorContainer< unsigned int, FaceRefType >                  CellIdVectorContainerType;
   typedef itk::QuadEdgeMeshPolygonCell< CellType >                           QEPolygonCellType;
   typedef itk::QuadEdgeMeshEulerOperatorFlipEdgeFunction< MeshType, QEType > FlipEdgeFunction;
-
+  
+protected:
+  
+  PointSetToDelaunayTriangulationFilter() {};
+  
+  virtual ~PointSetToDelaunayTriangulationFilter() {};
+  
+  void GenerateData()
+    {
+    // use the superclass method to copy input over output
+    // this ensure the const correctness of the inputs
+    std::cout << "Filter: Copy input to output." << std::endl;
+    this->CopyInputMeshToOutputMesh();
+    
+    DelaunayTriangulation( this->GetInput() );
+    }
+  
+private:
+  
   /** Our methods     */
   void DeleteDummyPoints( MeshType::Pointer mesh );
-
+  
   void CreateDummyMesh( MeshType::Pointer mesh, 
-                   PixelType         limit );
+                        PixelType         limit );
   
   bool RecursiveFlipEdgeTest( MeshType::Pointer mesh, 
                               PointIdentifier   point, 
@@ -117,9 +136,13 @@ public:
   PointIdentifier AddPoint( MeshType::Pointer mesh, 
                             PointType         point, 
                             FaceRefType       startingCell );
-
+  
   MeshType::Pointer DelaunayTriangulation( PointSetType::Pointer pointSet );
-
+  
+  /** ITK requirement     */
+  PointSetToDelaunayTriangulationFilter(const Self &);
+  void operator=(const Self &);
+  
 }; // class PointSetToDelaunayTriangulationFilter
 
 } // namespace itk

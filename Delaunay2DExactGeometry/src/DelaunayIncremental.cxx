@@ -163,9 +163,9 @@ main( int argc, char* argv[] )
   
   switch(type) 
     {
-    //case 1 :     
-    //pts = GeneratePointCoordinates< MeshType >( meshSize ); 
-    //break;
+    case 1 :     
+      pts = GeneratePointCoordinates< MeshType >( meshSize ); 
+      break;
     case 2 :
       pts = GenerateRandomCoordinates< MeshType >( meshSize ); 
       break;

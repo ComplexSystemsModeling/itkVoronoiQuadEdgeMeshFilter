@@ -2,6 +2,7 @@
 #include "itkPointSet.h"
 #include "itkQuadEdgeMesh.h"
 #include "itkDelaunayConformingQuadEdgeMeshFilter.h"
+#include "itkQuadEdgeMeshEulerOperatorsTestHelper.h"
 #include "itkVTKPolyDataWriter.h"
 #include "itkVTKPolyDataReader.h"
 

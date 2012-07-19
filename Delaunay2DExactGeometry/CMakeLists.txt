@@ -12,11 +12,8 @@ include_directories( ${WalkInTriangulation_DIR} )
 # add source file
 #
 set( Delaunay2DExactGeometry_src
-  src/DelaunayIncremental.cxx	
-  src/itkPointSetToDelaunayTriangulationFilter.hxx
-  src/itkPointSetSource.hxx
-  src/itkPointSetToPointSetFilter.hxx
-  src/itkQuadEdgeMeshSource.hxx
+  src/DelaunayIncremental.cxx
+  src/itkQuadEdgeMeshToDelaunayTriangulationFilter.hxx  
   ${predicates.c_location}
   )
 
@@ -25,11 +22,7 @@ set( Delaunay2DExactGeometry_src
 set( Delaunay2DExactGeometry_header
   ${WalkInTriangulation_DIR}/itkWalkInTriangulationFunction.h
   ${PointInCircle_DIR}/itkPointInCircleGeometricalPredicateFunctor.h
-  src/itkPointSetToDelaunayTriangulationFilter.h
-  src/itkPointSetSource.h
-  src/itkPointSetToPointSetFilter.h
-  src/itkQuadEdgeMeshSource.h
-  src/itkPointSetToDelaunayTriangulationFilter.h
+  src/itkQuadEdgeMeshToDelaunayTriangulationFilter.h
   )
 
 # if generat by Xcode add headers to executable

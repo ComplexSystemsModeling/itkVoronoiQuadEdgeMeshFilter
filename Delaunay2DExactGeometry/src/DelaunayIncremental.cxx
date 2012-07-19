@@ -2,13 +2,13 @@
 #include "itkPointSet.h"
 #include "itkQuadEdgeMesh.h"
 #include "itkDelaunayConformingQuadEdgeMeshFilter.h"
-#include "itkQuadEdgeMeshEulerOperatorFlipEdgeFunction.h"
 #include "itkVTKPolyDataWriter.h"
 #include "itkVTKPolyDataReader.h"
 
-#include "itkPointSetToDelaunayTriangulationFilter.h"
+#include "itkQuadEdgeMeshToDelaunayTriangulationFilter.h"
 
 #include <iostream>
+
 
 //--------------------------------------------------------------------------------
 // Random coordonates generation function
@@ -142,13 +142,11 @@ main( int argc, char* argv[] )
   typedef float PixelType;
   static const unsigned int Dimensions = 3;
 
-  typedef itk::PointSet< PixelType, Dimensions >      PointSetType;
   typedef itk::QuadEdgeMesh< PixelType, Dimensions >  MeshType;
   typedef MeshType::PointType                         PointType;
 
   typedef itk::DelaunayConformingQuadEdgeMeshFilter< MeshType, MeshType > ValidityTestType;
   typedef itk::VTKPolyDataWriter< MeshType >                              MeshWriterType;
-  typedef itk::PointSetToDelaunayTriangulationFilter< MeshType >          myFilterType;
 
   int type           = atoi( argv[1] );
   int meshSize       = atoi( argv[2] );
@@ -156,12 +154,12 @@ main( int argc, char* argv[] )
 
   std::vector< PointType > pts;
 
-  PointSetType::Pointer pointSet         = PointSetType::New();
-  MeshType::Pointer     triangulatedMesh = MeshType::New();
+  MeshType::Pointer pointSet         = MeshType::New();
+  MeshType::Pointer triangulatedMesh = MeshType::New();
 
   // -------------------------------------------------
   // Toy Point Set creation
-
+  
   switch(type) 
     {
     //case 1 :     
@@ -193,34 +191,35 @@ main( int argc, char* argv[] )
     pointSet->SetPoint( i, pts[i] );
     }
 
+  MeshWriterType::Pointer writeToyMesh = MeshWriterType::New();
+  writeToyMesh->SetFileName("./InputToyMesh.vtk");
+  writeToyMesh->SetInput( pointSet );
+  writeToyMesh->Update();
+  
   // -------------------------------------------------- 
   // Delaunay Construction
 
-  myFilterType::Pointer myFilter = myFilterType::New();
-  try
-    {
-    triangulatedMesh = myFilter->DelaunayTriangulation( pointSet );
-    }
-  catch( int e ) 
-    {
-    std::cerr << "Exception WiT Caught" << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  MeshWriterType::Pointer write = MeshWriterType::New();
-  write->SetFileName("./OutputDelaunayMesh.vtk");
-  write->SetInput( triangulatedMesh );
-  write->Update();
-
+  typedef itk::QuadEdgeMeshToDelaunayTriangulationFilter< MeshType, MeshType > MyFilter;
+  MyFilter::Pointer myfilter = MyFilter::New();
+  
+  myfilter->SetInput( pointSet );
+  triangulatedMesh = myfilter->GetOutput();
+  myfilter->Update();
+    
+  MeshWriterType::Pointer writeDelaunay = MeshWriterType::New();
+  writeDelaunay->SetFileName("./OutputDelaunayMesh.vtk");
+  writeDelaunay->SetInput( triangulatedMesh );
+  writeDelaunay->Update();
+  
   // -------------------------------------------------
   // Delaunay Validation
 
-  ValidityTestType::Pointer test = ValidityTestType::New();
-  test->SetInput( triangulatedMesh );
-  test->GraftOutput( triangulatedMesh );
-  test->Update();
+  ValidityTestType::Pointer validityTest = ValidityTestType::New();
+  validityTest->SetInput( triangulatedMesh );
+  validityTest->GraftOutput( triangulatedMesh );
+  validityTest->Update();
 
-  if( test->GetNumberOfEdgeFlips() > 0 )
+  if( validityTest->GetNumberOfEdgeFlips() > 0 )
     {
     return EXIT_FAILURE;
     }

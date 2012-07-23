@@ -14,8 +14,8 @@
  *                                                                               *
  *===============================================================================*/
 
-#ifndef __itkQuadEdgeMeshToDelaunayTriangulationFilter_hxx
-#define __itkQuadEdgeMeshToDelaunayTriangulationFilter_hxx
+#ifndef __itkPointSetToDelaunayTriangulationFilter_hxx
+#define __itkPointSetToDelaunayTriangulationFilter_hxx
 
 #include "itkPointInCircleGeometricalPredicateFunctor.h"
 
@@ -25,13 +25,13 @@ namespace itk {
 // Constructor & Destructor
 //--------------------------------------------------------------------------------
 template< class TInMesh, class TOutMesh >
-QuadEdgeMeshToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
-QuadEdgeMeshToDelaunayTriangulationFilter()
+PointSetToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
+PointSetToDelaunayTriangulationFilter()
 {}
   
 template< class TInMesh, class TOutMesh >
-QuadEdgeMeshToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
-~QuadEdgeMeshToDelaunayTriangulationFilter()
+PointSetToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
+~PointSetToDelaunayTriangulationFilter()
 {}
 //--------------------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ QuadEdgeMeshToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
 //--------------------------------------------------------------------------------
 template< class TInMesh, class TOutMesh >
 void
-QuadEdgeMeshToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
+PointSetToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
 GenerateData()
 {
   //this->CopyInputMeshToOutputMesh();
@@ -58,7 +58,7 @@ GenerateData()
 //-------------------------------------------------------------------------------- 
 template< class TInMesh, class TOutMesh >
 void
-QuadEdgeMeshToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
+PointSetToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
 PrintSelf( std::ostream & os, Indent indent ) const
 {
   //Superclass::PrintSelf( os, indent );
@@ -71,7 +71,7 @@ PrintSelf( std::ostream & os, Indent indent ) const
 //--------------------------------------------------------------------------------
 template< class TInMesh, class TOutMesh >
 void
-QuadEdgeMeshToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
+PointSetToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
 DeleteDummyPoints( std::vector<PointIdentifier> pts )
 {
   MeshPointer mesh = this->GetOutput();
@@ -93,7 +93,7 @@ DeleteDummyPoints( std::vector<PointIdentifier> pts )
 //--------------------------------------------------------------------------------  
 template< class TInMesh, class TOutMesh >
 std::vector< typename TOutMesh::PointIdentifier > 
-QuadEdgeMeshToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
+PointSetToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
 CreateDummyPoints( PixelType   limit )
 {
   MeshPointer mesh = this->GetOutput();
@@ -133,7 +133,7 @@ CreateDummyPoints( PixelType   limit )
 //--------------------------------------------------------------------------------
 template< class TInMesh, class TOutMesh >
 bool
-QuadEdgeMeshToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
+PointSetToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
 RecursiveFlipEdgeTest( PointIdentifier pointIndex, 
                          FaceRefType     cell )
 { 
@@ -217,7 +217,7 @@ RecursiveFlipEdgeTest( PointIdentifier pointIndex,
 //--------------------------------------------------------------------------------  
 template< class TInMesh, class TOutMesh >
 typename TOutMesh::PointIdentifier
-QuadEdgeMeshToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
+PointSetToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
 AddPoint( PointIdentifier   pointIndex, 
                        FaceRefType startingCell )
 {
@@ -278,7 +278,7 @@ AddPoint( PointIdentifier   pointIndex,
 //--------------------------------------------------------------------------------  
 template< class TInMesh, class TOutMesh >
 bool
-QuadEdgeMeshToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
+PointSetToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
 DelaunayTriangulation()
 { 
   MeshPointer mesh = this->GetOutput();
@@ -322,4 +322,4 @@ DelaunayTriangulation()
 
 } // namespace itk
 
-#endif // __itkQuadEdgeMeshToDelaunayTriangulationFilter_hxx
+#endif // __itkPointSetToDelaunayTriangulationFilter_hxx

@@ -14,8 +14,8 @@
  *                                                                               *
  *===============================================================================*/
 
-#ifndef __itkQuadEdgeMeshToDelaunayTriangulationFilter_h
-#define __itkQuadEdgeMeshToDelaunayTriangulationFilter_h
+#ifndef __itkPointSetToDelaunayTriangulationFilter_h
+#define __itkPointSetToDelaunayTriangulationFilter_h
 
 // ITK includes
 #include "itkQuadEdgeMeshEulerOperatorFlipEdgeFunction.h"
@@ -26,7 +26,6 @@
 #include "itkPointSetToQuadEdgeMeshFilter.h"
 
 // TODO
-// - Modify inheritance to allow to have PointSet as input
 // - Modify dummy points coordinates to be at infinity
 //
 // BUG
@@ -35,13 +34,13 @@
 namespace itk {
   
 template<class TInMesh, class TOutMesh>
-class ITK_EXPORT QuadEdgeMeshToDelaunayTriangulationFilter : 
+class ITK_EXPORT PointSetToDelaunayTriangulationFilter : 
   public PointSetToQuadEdgeMeshFilter<TInMesh, TOutMesh>
 {
 public:
   
   /** Standard class typedefs. */
-  typedef QuadEdgeMeshToDelaunayTriangulationFilter           Self;
+  typedef PointSetToDelaunayTriangulationFilter               Self;
   typedef QuadEdgeMeshToQuadEdgeMeshFilter<TInMesh, TOutMesh> Superclass;
   typedef SmartPointer<Self>                                  Pointer;
   typedef SmartPointer<const Self>                            ConstPointer;
@@ -50,7 +49,7 @@ public:
   itkNewMacro( Self );
   
   /** Run-time type information (and related methods).    */
-  itkTypeMacro( QuadEdgeMeshToDelaunayTriangulationFilter, QuadEdgeMeshToQuadEdgeMeshFilter );
+  itkTypeMacro( PointSetToDelaunayTriangulationFilter, QuadEdgeMeshToQuadEdgeMeshFilter );
   
   typedef          TOutMesh                          MeshType;
   typedef typename MeshType::Pointer                 MeshPointer;
@@ -76,9 +75,9 @@ public:
 protected:
   
   /** Generic Methods */
-  QuadEdgeMeshToDelaunayTriangulationFilter();
+  PointSetToDelaunayTriangulationFilter();
   
-  virtual ~QuadEdgeMeshToDelaunayTriangulationFilter();
+  virtual ~PointSetToDelaunayTriangulationFilter();
   
   void GenerateData();
   
@@ -97,15 +96,15 @@ protected:
   
 private:
   
-  QuadEdgeMeshToDelaunayTriangulationFilter( const Self & ); // purposely not implemented
-  void operator=( const Self & );                            // purposely not implemented
+  PointSetToDelaunayTriangulationFilter( const Self & ); // purposely not implemented
+  void operator=( const Self & );                        // purposely not implemented
   
 }; // QuadEdgeMeshToDelaunayTriangulationFilter
 
 } // namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkQuadEdgeMeshToDelaunayTriangulationFilter.hxx"
+#include "itkPointSetToDelaunayTriangulationFilter.hxx"
 #endif
 
-#endif // __itkQuadEdgeMeshToDelaunayTriangulationFilter_h
+#endif // __itkPointSetToDelaunayTriangulationFilter_h

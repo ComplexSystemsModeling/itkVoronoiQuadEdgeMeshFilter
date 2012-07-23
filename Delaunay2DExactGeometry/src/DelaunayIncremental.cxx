@@ -6,7 +6,7 @@
 #include "itkVTKPolyDataWriter.h"
 #include "itkVTKPolyDataReader.h"
 
-#include "itkQuadEdgeMeshToDelaunayTriangulationFilter.h"
+#include "itkPointSetToDelaunayTriangulationFilter.h"
 
 #include <iostream>
 
@@ -196,7 +196,7 @@ main( int argc, char* argv[] )
   // -------------------------------------------------- 
   // Delaunay Construction
 
-  typedef itk::QuadEdgeMeshToDelaunayTriangulationFilter< PointSetType, MeshType > MyFilter;
+  typedef itk::PointSetToDelaunayTriangulationFilter< PointSetType, MeshType > MyFilter;
   MyFilter::Pointer myfilter = MyFilter::New();
   
   myfilter->SetInput( pointSet );

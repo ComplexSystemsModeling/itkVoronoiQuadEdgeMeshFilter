@@ -8,15 +8,14 @@
  *   Singapore                                                                   *
  *   http://www.ipal.cnrs.fr                                                     * 
  *                                                                               *
- *   Input: itk::QuadEdgeMesh Set of points                                      *
+ *   Input: Set of points itk::PointSet                                          *
  *                                                                               *
- *   Output: itk::QuadEdgeMesh  Triangulated QuadEdgeMesh                        *
- *                                                                               *
+ *   Output: Delaunay triangulated mesh itk::QuadEdgeMesh                        *
  *                                                                               *
  *===============================================================================*/
 
-#ifndef __itkPointInCircleGeometricalPredicateFunctor_hxx
-#define __itkPointInCircleGeometricalPredicateFunctor_hxx
+#ifndef __itkQuadEdgeMeshToDelaunayTriangulationFilter_hxx
+#define __itkQuadEdgeMeshToDelaunayTriangulationFilter_hxx
 
 #include "itkPointInCircleGeometricalPredicateFunctor.h"
 
@@ -45,7 +44,10 @@ void
 QuadEdgeMeshToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
 GenerateData()
 {
-  this->CopyInputMeshToOutputMesh();
+  //this->CopyInputMeshToOutputMesh();
+  this->CopyInputMeshToOutputMeshPoints();
+  this->CopyInputMeshToOutputMeshPointData();
+  
   this->DelaunayTriangulation();
 }
 //--------------------------------------------------------------------------------
@@ -59,7 +61,7 @@ void
 QuadEdgeMeshToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
 PrintSelf( std::ostream & os, Indent indent ) const
 {
-  Superclass::PrintSelf( os, indent );
+  //Superclass::PrintSelf( os, indent );
 }
 //--------------------------------------------------------------------------------
   
@@ -320,4 +322,4 @@ DelaunayTriangulation()
 
 } // namespace itk
 
-#endif // __itkPointInCircleGeometricalPredicateFunctor_hxx
+#endif // __itkQuadEdgeMeshToDelaunayTriangulationFilter_hxx

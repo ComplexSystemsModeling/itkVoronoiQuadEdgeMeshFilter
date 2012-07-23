@@ -13,7 +13,6 @@
 
 //--------------------------------------------------------------------------------
 // Random coordonates generation function
-//
 //--------------------------------------------------------------------------------
 template< class TMesh >
 std::vector< typename TMesh::PointType >
@@ -144,18 +143,20 @@ main( int argc, char* argv[] )
   static const unsigned int Dimensions = 3;
 
   typedef itk::QuadEdgeMesh< PixelType, Dimensions >  MeshType;
-  typedef MeshType::PointType                         PointType;
+
+  typedef itk::PointSet< PixelType, Dimensions > PointSetType;
+  typedef PointSetType::PointType                PointType;
 
   typedef itk::DelaunayConformingQuadEdgeMeshFilter< MeshType, MeshType > ValidityTestType;
-  typedef itk::VTKPolyDataWriter< MeshType >                              MeshWriterType;
-
+  typedef itk::VTKPolyDataWriter< MeshType >  MeshWriterType;
+  
   int type           = atoi( argv[1] );
   int meshSize       = atoi( argv[2] );
   int expectedNumPts = 0;
 
   std::vector< PointType > pts;
 
-  MeshType::Pointer pointSet         = MeshType::New();
+  PointSetType::Pointer pointSet     = PointSetType::New();
   MeshType::Pointer triangulatedMesh = MeshType::New();
 
   // -------------------------------------------------
@@ -164,19 +165,19 @@ main( int argc, char* argv[] )
   switch(type) 
     {
     case 1 :     
-      pts = GeneratePointCoordinates< MeshType >( meshSize ); 
+      pts = GeneratePointCoordinates< PointSetType >( meshSize ); 
       break;
     case 2 :
-      pts = GenerateRandomCoordinates< MeshType >( meshSize ); 
+      pts = GenerateRandomCoordinates< PointSetType >( meshSize ); 
       break;
     case 3 :
-      pts = GenerateCircleCoordinates< MeshType >( meshSize );    
+      pts = GenerateCircleCoordinates< PointSetType >( meshSize );    
       break;
     case 4 :
-      pts = GenerateConcentricCoordinates< MeshType >( meshSize );
+      pts = GenerateConcentricCoordinates< PointSetType >( meshSize );
       break;
     case 5 :
-      pts = GenerateCrossCoordinates< MeshType >( meshSize );
+      pts = GenerateCrossCoordinates< PointSetType >( meshSize );
       break;
     default:
       std::cerr << "Exit wrong arguments" << std::endl;
@@ -192,25 +193,20 @@ main( int argc, char* argv[] )
     pointSet->SetPoint( i, pts[i] );
     }
 
-  MeshWriterType::Pointer writeToyMesh = MeshWriterType::New();
-  writeToyMesh->SetFileName("./InputToyMesh.vtk");
-  writeToyMesh->SetInput( pointSet );
-  writeToyMesh->Update();
-  
   // -------------------------------------------------- 
   // Delaunay Construction
 
-  typedef itk::QuadEdgeMeshToDelaunayTriangulationFilter< MeshType, MeshType > MyFilter;
+  typedef itk::QuadEdgeMeshToDelaunayTriangulationFilter< PointSetType, MeshType > MyFilter;
   MyFilter::Pointer myfilter = MyFilter::New();
   
   myfilter->SetInput( pointSet );
   triangulatedMesh = myfilter->GetOutput();
   myfilter->Update();
     
-  MeshWriterType::Pointer writeDelaunay = MeshWriterType::New();
-  writeDelaunay->SetFileName("./OutputDelaunayMesh.vtk");
-  writeDelaunay->SetInput( triangulatedMesh );
-  writeDelaunay->Update();
+  //MeshWriterType::Pointer writeDelaunay = MeshWriterType::New();
+  //writeDelaunay->SetFileName("./OutputDelaunayMesh.vtk");
+  //writeDelaunay->SetInput( triangulatedMesh );
+  //writeDelaunay->Update();
   
   // -------------------------------------------------
   // Delaunay Validation

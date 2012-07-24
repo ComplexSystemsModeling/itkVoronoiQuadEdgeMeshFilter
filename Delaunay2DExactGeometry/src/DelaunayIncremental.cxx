@@ -198,16 +198,16 @@ main( int argc, char* argv[] )
 
   typedef itk::PointSetToDelaunayTriangulationFilter< PointSetType, MeshType > MyFilter;
   MyFilter::Pointer myfilter = MyFilter::New();
-  
+ 
   myfilter->SetInput( pointSet );
   triangulatedMesh = myfilter->GetOutput();
   myfilter->Update();
-    
+
   //MeshWriterType::Pointer writeDelaunay = MeshWriterType::New();
   //writeDelaunay->SetFileName("./OutputDelaunayMesh.vtk");
   //writeDelaunay->SetInput( triangulatedMesh );
   //writeDelaunay->Update();
-  
+ 
   // -------------------------------------------------
   // Delaunay Validation
 

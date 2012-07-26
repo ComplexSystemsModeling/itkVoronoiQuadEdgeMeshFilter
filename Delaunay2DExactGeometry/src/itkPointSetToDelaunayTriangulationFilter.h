@@ -36,26 +36,27 @@ namespace itk {
   
 template< class TInMesh >
 class ITK_EXPORT PointSetToDelaunayTriangulationFilter : 
-  public PointSetToMeshFilter<TInMesh, QuadEdgeMesh< typename TInMesh::PixelType, 3 > >
+  public PointSetToMeshFilter< TInMesh, QuadEdgeMesh< typename TInMesh::PixelType, GetPointSetDimension<TInMesh>::PointDimension > >
 {
 public:
   
-  /** Force OutputType */
-  // NOTE STEPH: Get the Dimensions from InputMesh
-  static const unsigned int dimension = 3;
-  typedef QuadEdgeMesh< typename TInMesh::PixelType, dimension > MeshType;
+  /** Force OutputType */  
+  typedef QuadEdgeMesh< typename TInMesh::PixelType, GetPointSetDimension<TInMesh>::PointDimension > MeshType;
   
   /** Standard class typedefs. */
-  typedef PointSetToDelaunayTriangulationFilter    Self;
-  typedef PointSetToMeshFilter<TInMesh, MeshType>  Superclass;
-  typedef SmartPointer<Self>                       Pointer;
-  typedef SmartPointer<const Self>                 ConstPointer;
+  typedef PointSetToDelaunayTriangulationFilter      Self;
+  typedef PointSetToMeshFilter< TInMesh, MeshType >  Superclass;
+  typedef SmartPointer< Self >                       Pointer;
+  typedef SmartPointer< const Self >                 ConstPointer;
   
   /** New macro for creation of through a Smart Pointer   */
   itkNewMacro( Self );
   
   /** Run-time type information (and related methods).    */
   itkTypeMacro( PointSetToDelaunayTriangulationFilter, PointSetToMeshFilter );
+  
+  /** Convenient macro   */
+  itkStaticConstMacro( PointDimension, unsigned int, MeshType::Traits::PointDimension );
   
   /** Some convenient typedefs.    */
   //typedef          TOutMesh                          MeshType;
@@ -72,12 +73,12 @@ public:
   typedef typename MeshType::CellType                CellType;
   typedef typename CellType::PointIdConstIterator    PointIdConstIterator;
   
-  typedef          QuadEdgeMeshEulerOperatorFlipEdgeFunction<MeshType, QEType> FlipEdgeFunction;
-  typedef typename FlipEdgeFunction::Pointer                                   FlipEdgeFunctionPointer;
-  typedef          WalkInTriangulationFunction<MeshType>                       WalkInTriangulationFunction;
-  typedef typename WalkInTriangulationFunction::Pointer                        WalkInTriangulationFunctionPointer;
-  typedef          VectorContainer<unsigned int, FaceRefType>                  CellIdVectorContainerType;
-  typedef typename CellIdVectorContainerType::Pointer                          CellIdVectorContainerTypePointer;
+  typedef          QuadEdgeMeshEulerOperatorFlipEdgeFunction< MeshType, QEType > FlipEdgeFunction;
+  typedef typename FlipEdgeFunction::Pointer                                     FlipEdgeFunctionPointer;
+  typedef          WalkInTriangulationFunction< MeshType >                       WalkInTriangulationFunction;
+  typedef typename WalkInTriangulationFunction::Pointer                          WalkInTriangulationFunctionPointer;
+  typedef          VectorContainer< unsigned int, FaceRefType >                  CellIdVectorContainerType;
+  typedef typename CellIdVectorContainerType::Pointer                            CellIdVectorContainerTypePointer;
 
   typedef std::vector< PointIdentifier >    PointIdVectorType;
   
@@ -90,7 +91,7 @@ protected:
   void GenerateData();
     
   /** Process Methods */
-  void DeleteDummyPoints( std::vector<PointIdentifier> pts );
+  void DeleteDummyPoints( PointIdVectorType pts );
   
   PointIdVectorType CreateDummyPoints( PixelType limit );
   

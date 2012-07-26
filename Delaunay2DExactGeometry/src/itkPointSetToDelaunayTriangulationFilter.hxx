@@ -28,8 +28,8 @@ template< class TInMesh >
 PointSetToDelaunayTriangulationFilter< TInMesh >::
 PointSetToDelaunayTriangulationFilter()
 {
-  this->Superclass::SetNumberOfRequiredInputs(1);
-  this->Superclass::SetNumberOfRequiredOutputs(1);
+  this->Superclass::SetNumberOfRequiredInputs( 1 );
+  this->Superclass::SetNumberOfRequiredOutputs( 1 );
   
   this->Superclass::SetNthOutput( 0, MeshType::New() );
 }
@@ -58,7 +58,7 @@ GenerateData()
 template< class TInMesh >
 void
 PointSetToDelaunayTriangulationFilter< TInMesh >::
-DeleteDummyPoints( std::vector<PointIdentifier> pts )
+DeleteDummyPoints( PointIdVectorType pts )
 {
   MeshPointer mesh = this->GetOutput();
   for( unsigned int i = 0; i < pts.size(); i++ )
@@ -89,7 +89,7 @@ CreateDummyPoints( PixelType   limit )
   int simpleTriangleCells[6] = { 0, 1, 3, 0, 3, 2 };
   int i( 0 );  
   std::vector< PointType > pts( 4 );
-  std::vector<PointIdentifier> idx(4);  
+  PointIdVectorType idx(4);  
   
   PixelType min = -limit;  
   PixelType max =  limit;
@@ -121,7 +121,7 @@ template< class TInMesh >
 bool
 PointSetToDelaunayTriangulationFilter< TInMesh >::
 RecursiveFlipEdgeTest( PointIdentifier pointIndex, 
-                         FaceRefType     cell )
+                       FaceRefType     cell )
 { 
   MeshPointer mesh = this->GetOutput();
 
@@ -269,7 +269,7 @@ DelaunayTriangulation()
 { 
   MeshPointer mesh = this->GetOutput();
       
-  std::vector<PointIdentifier> pts;
+  PointIdVectorType pts;
   PixelType limit = pow( 10, 10 );
   pts = this->CreateDummyPoints( limit ); 
       

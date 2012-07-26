@@ -140,7 +140,7 @@ main( int argc, char* argv[] )
     }
 
   typedef float PixelType;
-  static const unsigned int Dimensions = 3;
+  static const unsigned int Dimensions = 2;
 
   typedef itk::QuadEdgeMesh< PixelType, Dimensions >  MeshType;
 

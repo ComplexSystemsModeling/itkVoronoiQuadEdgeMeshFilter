@@ -22,36 +22,43 @@
 #include "itkWalkInTriangulationFunction.h"
 #include "itkPointInCircleGeometricalPredicateFunctor.h"
 
-#include "itkQuadEdgeMeshSource.h"
-#include "itkPointSetToQuadEdgeMeshFilter.h"
+#include "itkQuadEdgeMesh.h"
+#include "itkPointSetToMeshFilter.h"
 
 // TODO
 // - Modify dummy points coordinates to be at infinity
+// - Extract output Dimension from intput PointSet/Mesh  
 //
 // BUG
 // - Random point generation with more than 2000 points can do segmentation fault
 
 namespace itk {
   
-template<class TInMesh, class TOutMesh>
+template< class TInMesh >
 class ITK_EXPORT PointSetToDelaunayTriangulationFilter : 
-  public PointSetToQuadEdgeMeshFilter<TInMesh, TOutMesh>
+  public PointSetToMeshFilter<TInMesh, QuadEdgeMesh< typename TInMesh::PixelType, 3 > >
 {
 public:
   
+  /** Force OutputType */
+  // NOTE STEPH: Get the Dimensions from InputMesh
+  static const unsigned int dimension = 3;
+  typedef QuadEdgeMesh< typename TInMesh::PixelType, dimension > MeshType;
+  
   /** Standard class typedefs. */
-  typedef PointSetToDelaunayTriangulationFilter               Self;
-  typedef QuadEdgeMeshToQuadEdgeMeshFilter<TInMesh, TOutMesh> Superclass;
-  typedef SmartPointer<Self>                                  Pointer;
-  typedef SmartPointer<const Self>                            ConstPointer;
+  typedef PointSetToDelaunayTriangulationFilter    Self;
+  typedef PointSetToMeshFilter<TInMesh, MeshType>  Superclass;
+  typedef SmartPointer<Self>                       Pointer;
+  typedef SmartPointer<const Self>                 ConstPointer;
   
   /** New macro for creation of through a Smart Pointer   */
   itkNewMacro( Self );
   
   /** Run-time type information (and related methods).    */
-  itkTypeMacro( PointSetToDelaunayTriangulationFilter, QuadEdgeMeshToQuadEdgeMeshFilter );
+  itkTypeMacro( PointSetToDelaunayTriangulationFilter, PointSetToMeshFilter );
   
-  typedef          TOutMesh                          MeshType;
+  /** Some convenient typedefs.    */
+  //typedef          TOutMesh                          MeshType;
   typedef typename MeshType::Pointer                 MeshPointer;
   typedef typename MeshType::PixelType               PixelType;
   typedef typename MeshType::PointType               PointType;
@@ -71,22 +78,21 @@ public:
   typedef typename WalkInTriangulationFunction::Pointer                        WalkInTriangulationFunctionPointer;
   typedef          VectorContainer<unsigned int, FaceRefType>                  CellIdVectorContainerType;
   typedef typename CellIdVectorContainerType::Pointer                          CellIdVectorContainerTypePointer;
+
+  typedef std::vector< PointIdentifier >    PointIdVectorType;
   
 protected:
   
   /** Generic Methods */
   PointSetToDelaunayTriangulationFilter();
-  
-  virtual ~PointSetToDelaunayTriangulationFilter();
+  ~PointSetToDelaunayTriangulationFilter() {}
   
   void GenerateData();
-  
-  void PrintSelf( std::ostream & os, Indent indent ) const;
-  
+    
   /** Process Methods */
   void DeleteDummyPoints( std::vector<PointIdentifier> pts );
   
-  std::vector<PointIdentifier> CreateDummyPoints( PixelType limit );
+  PointIdVectorType CreateDummyPoints( PixelType limit );
   
   bool RecursiveFlipEdgeTest( PointIdentifier pointIndex, FaceRefType cell );
   

@@ -24,44 +24,30 @@ namespace itk {
 //--------------------------------------------------------------------------------
 // Constructor & Destructor
 //--------------------------------------------------------------------------------
-template< class TInMesh, class TOutMesh >
-PointSetToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
+template< class TInMesh >
+PointSetToDelaunayTriangulationFilter< TInMesh >::
 PointSetToDelaunayTriangulationFilter()
-{}
+{
+  this->Superclass::SetNumberOfRequiredInputs(1);
+  this->Superclass::SetNumberOfRequiredOutputs(1);
   
-template< class TInMesh, class TOutMesh >
-PointSetToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
-~PointSetToDelaunayTriangulationFilter()
-{}
+  this->Superclass::SetNthOutput( 0, MeshType::New() );
+}
 //--------------------------------------------------------------------------------
-
+  
   
 //--------------------------------------------------------------------------------
 // Generate Date Function
 //--------------------------------------------------------------------------------
-template< class TInMesh, class TOutMesh >
+template< class TInMesh >
 void
-PointSetToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
+PointSetToDelaunayTriangulationFilter< TInMesh >::
 GenerateData()
 {
-  //this->CopyInputMeshToOutputMesh();
   this->CopyInputMeshToOutputMeshPoints();
   this->CopyInputMeshToOutputMeshPointData();
   
   this->DelaunayTriangulation();
-}
-//--------------------------------------------------------------------------------
-
-
-//--------------------------------------------------------------------------------
-// Self Print Function
-//-------------------------------------------------------------------------------- 
-template< class TInMesh, class TOutMesh >
-void
-PointSetToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
-PrintSelf( std::ostream & os, Indent indent ) const
-{
-  //Superclass::PrintSelf( os, indent );
 }
 //--------------------------------------------------------------------------------
   
@@ -69,9 +55,9 @@ PrintSelf( std::ostream & os, Indent indent ) const
 //--------------------------------------------------------------------------------
 // Delete Dummy Points
 //--------------------------------------------------------------------------------
-template< class TInMesh, class TOutMesh >
+template< class TInMesh >
 void
-PointSetToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
+PointSetToDelaunayTriangulationFilter< TInMesh >::
 DeleteDummyPoints( std::vector<PointIdentifier> pts )
 {
   MeshPointer mesh = this->GetOutput();
@@ -91,9 +77,9 @@ DeleteDummyPoints( std::vector<PointIdentifier> pts )
 //--------------------------------------------------------------------------------
 // Create Dummy Points
 //--------------------------------------------------------------------------------  
-template< class TInMesh, class TOutMesh >
-std::vector< typename TOutMesh::PointIdentifier > 
-PointSetToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
+template< class TInMesh >
+std::vector< typename PointSetToDelaunayTriangulationFilter< TInMesh >::PointIdentifier >
+PointSetToDelaunayTriangulationFilter< TInMesh >::
 CreateDummyPoints( PixelType   limit )
 {
   MeshPointer mesh = this->GetOutput();
@@ -131,9 +117,9 @@ CreateDummyPoints( PixelType   limit )
 //--------------------------------------------------------------------------------
 // Recursive Delaunay Criterion Test and Flip Edge Function
 //--------------------------------------------------------------------------------
-template< class TInMesh, class TOutMesh >
+template< class TInMesh >
 bool
-PointSetToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
+PointSetToDelaunayTriangulationFilter< TInMesh >::
 RecursiveFlipEdgeTest( PointIdentifier pointIndex, 
                          FaceRefType     cell )
 { 
@@ -215,11 +201,11 @@ RecursiveFlipEdgeTest( PointIdentifier pointIndex,
 //--------------------------------------------------------------------------------
 // Add a Point to the Underconstruction Delaunay Mesh
 //--------------------------------------------------------------------------------  
-template< class TInMesh, class TOutMesh >
-typename TOutMesh::PointIdentifier
-PointSetToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
-AddPoint( PointIdentifier   pointIndex, 
-                       FaceRefType startingCell )
+template< class TInMesh >
+typename PointSetToDelaunayTriangulationFilter< TInMesh >::PointIdentifier
+PointSetToDelaunayTriangulationFilter< TInMesh >::
+AddPoint( PointIdentifier pointIndex, 
+          FaceRefType     startingCell )
 {
   MeshPointer mesh = this->GetOutput();
 
@@ -276,9 +262,9 @@ AddPoint( PointIdentifier   pointIndex,
 //--------------------------------------------------------------------------------
 // Main Loop of the Delaunay Triangulation Algorithm
 //--------------------------------------------------------------------------------  
-template< class TInMesh, class TOutMesh >
+template< class TInMesh >
 bool
-PointSetToDelaunayTriangulationFilter< TInMesh, TOutMesh >::
+PointSetToDelaunayTriangulationFilter< TInMesh >::
 DelaunayTriangulation()
 { 
   MeshPointer mesh = this->GetOutput();

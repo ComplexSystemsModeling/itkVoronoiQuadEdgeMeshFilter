@@ -186,7 +186,7 @@ main( int argc, char* argv[] )
       
       return EXIT_FAILURE;
     }
-
+  
   expectedNumPts = pts.size();
   for( int i = 0; i < expectedNumPts ; i++ )
     {
@@ -195,14 +195,14 @@ main( int argc, char* argv[] )
 
   // -------------------------------------------------- 
   // Delaunay Construction
-
-  typedef itk::PointSetToDelaunayTriangulationFilter< PointSetType, MeshType > MyFilter;
+  
+  typedef itk::PointSetToDelaunayTriangulationFilter< PointSetType > MyFilter;
   MyFilter::Pointer myfilter = MyFilter::New();
  
   myfilter->SetInput( pointSet );
   triangulatedMesh = myfilter->GetOutput();
   myfilter->Update();
-
+  
   //MeshWriterType::Pointer writeDelaunay = MeshWriterType::New();
   //writeDelaunay->SetFileName("./OutputDelaunayMesh.vtk");
   //writeDelaunay->SetInput( triangulatedMesh );

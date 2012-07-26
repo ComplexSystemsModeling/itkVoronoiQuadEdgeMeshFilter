@@ -1,18 +1,18 @@
 
-#ifndef __itkPointSetToQuadEdgeMeshFilter_hxx
-#define __itkPointSetToQuadEdgeMeshFilter_hxx
+#ifndef __itkPointSetToMeshFilter_hxx
+#define __itkPointSetToMeshFilter_hxx
 
 // ITK includes
-#include "itkPointSetToQuadEdgeMeshFilter.h"
+#include "itkPointSetToMeshFilter.h"
 
 namespace itk {
 
 /**
 *
 */
-template<class TPointSet, class TQuadEdgeMesh>
-PointSetToQuadEdgeMeshFilter< TPointSet, TQuadEdgeMesh >::
-PointSetToQuadEdgeMeshFilter()
+template<class TPointSet, class TMesh>
+PointSetToMeshFilter< TPointSet, TMesh >::
+PointSetToMeshFilter()
 {
   // Modify superclass default values, can be overridden by subclasses
   this->SetNumberOfRequiredInputs(1);
@@ -21,9 +21,9 @@ PointSetToQuadEdgeMeshFilter()
 /**
 *
 */
-template<class TPointSet, class TQuadEdgeMesh>
+template<class TPointSet, class TMesh>
 void
-PointSetToQuadEdgeMeshFilter< TPointSet, TQuadEdgeMesh >::
+PointSetToMeshFilter< TPointSet, TMesh >::
 SetInput(const TPointSet *input)
 {
   // Process object is not const-correct so the const_cast is required here
@@ -34,9 +34,9 @@ SetInput(const TPointSet *input)
 /**
 *
 */
-template<class TPointSet, class TQuadEdgeMesh>
-const typename PointSetToQuadEdgeMeshFilter< TPointSet, TQuadEdgeMesh >::PointSetType *
-PointSetToQuadEdgeMeshFilter< TPointSet, TQuadEdgeMesh >::
+template<class TPointSet, class TMesh>
+const typename PointSetToMeshFilter< TPointSet, TMesh >::PointSetType *
+PointSetToMeshFilter< TPointSet, TMesh >::
 GetInput() const
 {
   return static_cast< const TPointSet * >( this->GetPrimaryInput() );
@@ -45,27 +45,30 @@ GetInput() const
 /**
 *
 */
-template<class TPointSet, class TQuadEdgeMesh>
-  const typename PointSetToQuadEdgeMeshFilter< TPointSet, TQuadEdgeMesh >::PointSetType *
-PointSetToQuadEdgeMeshFilter< TPointSet, TQuadEdgeMesh >::
+template<class TPointSet, class TMesh>
+const typename PointSetToMeshFilter< TPointSet, TMesh >::PointSetType *
+PointSetToMeshFilter< TPointSet, TMesh >::
 GetInput(unsigned int idx) const
 {
   return dynamic_cast< const TPointSet * > ( this->ProcessObject::GetInput(idx) );
 }
 
-template<class TPointSet, class TQuadEdgeMesh>
+/**
+ *
+ */
+template<class TPointSet, class TMesh>
 void
-PointSetToQuadEdgeMeshFilter< TPointSet, TQuadEdgeMesh >::
+PointSetToMeshFilter< TPointSet, TMesh >::
 CopyInputMeshToOutputMeshPoints(void)
 {
   const PointSetType  *pointSet    =  this->GetInput();
-  QuadEdgeMeshPointer  outputMesh  =  this->GetOutput();
+  MeshPointer          outputMesh  =  this->GetOutput();
 
-  typedef typename TQuadEdgeMesh::PointsContainer OutputPointsContainer;
-  typedef typename TPointSet::PointsContainer     InputPointsContainer;
+  typedef typename TMesh::PointsContainer      OutputPointsContainer;
+  typedef typename TPointSet::PointsContainer  InputPointsContainer;
 
   typename OutputPointsContainer::Pointer outputPoints = OutputPointsContainer::New();
-  const InputPointsContainer *inputPoints = pointSet->GetPoints();
+  const    InputPointsContainer           *inputPoints = pointSet->GetPoints();
 
   if ( inputPoints )
     {
@@ -87,19 +90,22 @@ CopyInputMeshToOutputMeshPoints(void)
     }
 }
 
-template<class TPointSet, class TQuadEdgeMesh>
+/**
+ *
+ */
+template<class TPointSet, class TMesh>
 void
-PointSetToQuadEdgeMeshFilter< TPointSet, TQuadEdgeMesh >::
+PointSetToMeshFilter< TPointSet, TMesh >::
 CopyInputMeshToOutputMeshPointData(void)
 {
   const PointSetType  *pointSet    =  this->GetInput();
-  QuadEdgeMeshPointer  outputMesh  =  this->GetOutput();
+  MeshPointer          outputMesh  =  this->GetOutput();
 
-  typedef typename TQuadEdgeMesh::PointDataContainer OutputPointDataContainer;
-  typedef typename TPointSet::PointDataContainer     InputPointDataContainer;
+  typedef typename TMesh::PointDataContainer      OutputPointDataContainer;
+  typedef typename TPointSet::PointDataContainer  InputPointDataContainer;
 
   typename OutputPointDataContainer::Pointer outputPointData = OutputPointDataContainer::New();
-  const InputPointDataContainer *inputPointData = pointSet->GetPointData();
+  const    InputPointDataContainer           *inputPointData = pointSet->GetPointData();
 
   if ( inputPointData )
     { 
@@ -121,6 +127,6 @@ CopyInputMeshToOutputMeshPointData(void)
   }
 }
 
-}
+} // namespace itk
 
-#endif // __itkPointSetToQuadEdgeMeshFilter_hxx
+#endif // __itkPointSetToMeshFilter_hxx

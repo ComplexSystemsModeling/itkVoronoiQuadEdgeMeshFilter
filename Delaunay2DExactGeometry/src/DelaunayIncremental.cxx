@@ -192,7 +192,7 @@ main( int argc, char* argv[] )
     {
     pointSet->SetPoint( i, pts[i] );
     }
-
+  
   // -------------------------------------------------- 
   // Delaunay Construction
   
@@ -204,7 +204,7 @@ main( int argc, char* argv[] )
   myfilter->Update();
   
   //MeshWriterType::Pointer writeDelaunay = MeshWriterType::New();
-  //writeDelaunay->SetFileName("./OutputDelaunayMesh.vtk");
+  //writeDelaunay->SetFileName("./OutputMesh.vtk");
   //writeDelaunay->SetInput( triangulatedMesh );
   //writeDelaunay->Update();
  

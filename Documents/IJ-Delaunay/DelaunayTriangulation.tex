@@ -136,7 +136,7 @@ The Delaunay criterion is then checked for the newly created triangle $\mathit{T
 \subfloat[]{\label{fig:algo4}\includegraphics[width=0.15\textwidth]{4a}} \hspace{5pt}
 \subfloat[]{\label{fig:algo5}\includegraphics[width=0.15\textwidth]{5a}} \hspace{5pt}
 \subfloat[]{\label{fig:algo6}\includegraphics[width=0.15\textwidth]{6a}}
-\itkcaption{Incremental algorithm iteration. (a) Initialisation step. (b) $\mathit{DT(}\mathcal{P}_{\mathit{t}}\mathit{)}$. (c) Add a point $\mathit{p}_{\mathit{t}}$ to $\mathit{DT(}\mathcal{P}_{\mathit{t}}\mathit{)}$. (d) Create three new triangles $\mathit{T}_{1}$, $\mathit{T}_{2}$ and $\mathit{T}_{3}$. (d) Flip illegal edge in order to obtain $\mathit{DT(}\mathcal{P}_{\mathit{t+1}}\mathit{)}$. (e) Remove temporary points from the initialisation step.}
+\itkcaption{Incremental algorithm iteration. (a) Initialisation step. (b) $\mathit{DT(}\mathcal{P}_{\mathit{t}}\mathit{)}$. (c) Add a point $\mathit{p}_{\mathit{t}}$ to $\mathit{DT(}\mathcal{P}_{\mathit{t}}\mathit{)}$. (d) Create three new triangles $\mathit{T}_{1}$, $\mathit{T}_{2}$ and $\mathit{T}_{3}$. (d) Flip illegal edge in order to obtain $\mathit{DT(}\mathcal{P}_{\mathit{t+1}}\mathit{)}$. (e) When all point are processed, remove temporary points from the initialisation step. (f) Final $\mathit{DT(}\mathcal{P}\mathit{)}$.}
 \label{fig:Algo}
 \end{figure}
 
@@ -168,7 +168,7 @@ The validation of the filter output is made using the \emph{itk::DelaunayConform
 \subfloat[]{\label{fig:res2}\includegraphics[width=0.40\textwidth]{3r}} \\
 \subfloat[]{\label{fig:res3}\includegraphics[width=0.40\textwidth]{1r}}  \hspace{10pt}
 \subfloat[]{\label{fig:res4}\includegraphics[width=0.40\textwidth]{2r}} 
-\itkcaption{Paraview displays of results. (a) Regular pointset. (b) Randomly generated pointset.}
+\itkcaption{Paraview displays of results. (a) Regular pointset. (b) Randomly generated pointset. (c) Corresponding Delaunay Triangulation of pointset (a). (d) Corresponding Delaunay Triangulation of pointset (b).}
 \label{fig:res}
 \end{figure}
 

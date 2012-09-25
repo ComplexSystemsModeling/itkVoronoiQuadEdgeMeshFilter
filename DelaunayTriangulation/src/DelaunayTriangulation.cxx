@@ -133,18 +133,18 @@ main( int argc, char* argv[] )
   if( argc != 3 )
     {
     std::cerr << "Exit wrong arguments" << std::endl;
-    std::cerr << "Usage - arg[1] [1|2] = [\"reg\"|\"rand\"] - arg[2] int = [rowsize|nbPoint]";
+    std::cerr << "Usage - arg[1] : PointSet Generator - arg[2] : number of points ";
     std::cerr << std::endl;
 
     return EXIT_FAILURE;
     }
 
   typedef float PixelType;
-  static const unsigned int Dimensions = 2;
+  static const unsigned int Dimension = 2;
 
-  typedef itk::QuadEdgeMesh< PixelType, Dimensions >  MeshType;
+  typedef itk::QuadEdgeMesh< PixelType, Dimension >  MeshType;
 
-  typedef itk::PointSet< PixelType, Dimensions > PointSetType;
+  typedef itk::PointSet< PixelType, Dimension > PointSetType;
   typedef PointSetType::PointType                PointType;
 
   typedef itk::DelaunayConformingQuadEdgeMeshFilter< MeshType, MeshType > ValidityTestType;
@@ -155,7 +155,6 @@ main( int argc, char* argv[] )
   int expectedNumPts = 0;
 
   std::vector< PointType > pts;
-
   PointSetType::Pointer pointSet     = PointSetType::New();
   MeshType::Pointer triangulatedMesh = MeshType::New();
 
@@ -180,10 +179,8 @@ main( int argc, char* argv[] )
       pts = GenerateCrossCoordinates< PointSetType >( meshSize );
       break;
     default:
-      std::cerr << "Exit wrong arguments" << std::endl;
-      std::cerr << "Usage - arg[1] [1|2] = [\"reg\"|\"rand\"] - arg[2] int = [rowsize|nbPoint]";
+      std::cerr << "Exit wrong arguments for PointSet Generator" << std::endl;
       std::cerr << std::endl;
-      
       return EXIT_FAILURE;
     }
   
@@ -203,17 +200,11 @@ main( int argc, char* argv[] )
   triangulatedMesh = myfilter->GetOutput();
   myfilter->Update();
   
-  //MeshWriterType::Pointer writeDelaunay = MeshWriterType::New();
-  //writeDelaunay->SetFileName("./OutputMesh.vtk");
-  //writeDelaunay->SetInput( triangulatedMesh );
-  //writeDelaunay->Update();
- 
   // -------------------------------------------------
   // Delaunay Validation
 
   ValidityTestType::Pointer validityTest = ValidityTestType::New();
   validityTest->SetInput( triangulatedMesh );
-  validityTest->GraftOutput( triangulatedMesh );
   validityTest->Update();
 
   if( validityTest->GetNumberOfEdgeFlips() > 0 )
@@ -221,6 +212,11 @@ main( int argc, char* argv[] )
     return EXIT_FAILURE;
     }
 
+  MeshWriterType::Pointer writer = MeshWriterType::New();
+  writer->SetFileName( "OutputMesh.vtk" );
+  writer->SetInput( triangulatedMesh );
+  writer->Update();
+   
   // ------------------------------------------------
   // End process ... by by
 

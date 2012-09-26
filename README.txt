@@ -1,24 +1,25 @@
-# This work was done by St√©phane U. Rigaud, Humayun Irshad, Bertrand Moreau and Alexandre Goualliard 
+# This work was done by Stéphane U. Rigaud, Humayun Irshad, Bertrand Moreau and Alexandre Gouaillard 
 # www.ipal.cnrs.fr
 
 # How to use the Primal/Dual code
-# This small tutorial suposed that you already have CMake and Git installed on your computer.
-# You can find them repectively at
+# This small tutorial supposed that you already have CMake and Git installed on your computer.
+# You can find them respectively at
 
 http://www.cmake.org
 http://git-scm.com
 
 # 1 - ITK Installation
-#     First, download the latest version of our modified ITK from the github repositories of the ComplexSystem team.
-#     This version contain the latest addition on the itkQuadEdgeMesh structure that is needed to run our work.
-#     The easiest way is to clone the git repository from github where you want to download the sources.
+#     First, download the latest version of our modified ITK from the github repositories 
+#     of the ComplexSystem team. This version contains the latest addition 
+#     on the itkQuadEdgeMesh structure that is needed to run our work. The easiest way is to 
+#     clone the git repository from github where you want to download the sources.
 
 git clone https://github.com/ComplexSystemsModeling/ITK.git
 cd ./ITK
 git submodule update --init
 
 #     Once the sources and submodule are downloaded, you need to compile it.
-#     This is totaly similar to installing a standart version of ITK.
+#     This is totally similar to installing a standard version of ITK.
 #     Use CMake and your favorite C++ Compiler.
 #     For more help on the matter, several tutorial can be found on ITK website
 
@@ -34,7 +35,7 @@ BUILD_TESTING  ON
 ITK_USE_REVIEW ON
 
 #     Once ITK compiled, run the test command "CTest" into your Build repository
-#     in order to check if the installation whent correctly.
+#     in order to check if the installation went correctly.
 
 # 2 - Delaunay Triangulation and Simplex Mesh
 #     Once ITK is running perfectly, download our repository from github. 
@@ -59,8 +60,8 @@ itkVoronoiQuadEdgeMeshFilter/SimplexMesh/src/SimplexMesh.cxx
 itkVoronoiQuadEdgeMeshFilter/DelaunayTriangulation/src/DelaunayTriangulation.cxx
 itkVoronoiQuadEdgeMeshFilter/WalkInTriangulation/src/WalkInTriangulation.cxx
 
-#     More information on the different filters can be found in their respective README file  
-#     and in their respective Insight Journal.
+#     More information on the different filters can be found 
+#     in their respective README file and in their respective Insight Journal.
 
 PointInCircle - http://hdl.handle.net/10380/3329
 WalkInTriangulation - http://hdl.handle.net/10380/3341

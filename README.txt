@@ -27,8 +27,9 @@ http://www.itk.org/ITK/help/tutorials.html
 
 #     For a better use of ITK, make sure to build examples, testing and reviews 
 #     by setting on the following variable in CMake configuration in CMake advance mode.
-#     Take note that setting the examples and the testing will make the compilation much slower,
-#     but will unsure that you have a perfectly installed version of ITK.
+#     Take note that setting the examples and the testing will make 
+#     the compilation much slower, but will unsure that you have a perfectly 
+#     installed version of ITK.
 
 BUILD_EXAMPLES ON
 BUILD_TESTING  ON

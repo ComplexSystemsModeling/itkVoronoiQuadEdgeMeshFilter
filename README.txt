@@ -1,61 +1,150 @@
-# This work was done by Stéphane U. Rigaud, Humayun Irshad, Bertrand Moreau and Alexandre Gouaillard 
-# www.ipal.cnrs.fr
+# This work was done by  
+# Stephane U. Rigaud, Humayun Irshad, Bertrand Moreau and Alexandre Gouaillard 
+# { rigaud.stephane | humayun.irshad | agouaillard }@gmail.com
+# Do not hesistate to contact for any question or problems encounter.
 
-# How to use the Primal/Dual code
-# This small tutorial supposed that you already have CMake and Git installed on your computer.
+# This small tutorial supposed that you are working on a Unix | MacOs | Linux system
+# and already have CMake and Git installed on your computer.
 # You can find them respectively at
 
 http://www.cmake.org
 http://git-scm.com
 
 # 1 - ITK Installation
-#     First, download the latest version of our modified ITK from the github repositories 
+#     First, open a terminal consol and go where you want to have ITK installed.
+
+cd ~/"my favorite path"/
+
+#     Download the latest version of our modified ITK from the github repositories 
 #     of the ComplexSystem team. This version contains the latest addition 
 #     on the itkQuadEdgeMesh structure that is needed to run our work. The easiest way is to 
 #     clone the git repository from github where you want to download the sources.
 
 git clone https://github.com/ComplexSystemsModeling/ITK.git
+
+#     A new repository shoulb appeare, called "ITK", that contains all the sources of ITK.
+#     You need now to download the possible submodules that are still missing.
+#     For that go in the ITK folder and update the submodule
+
 cd ./ITK
 git submodule update --init
 
-#     Once the sources and submodule are downloaded, you need to compile it.
+#     Once the sources and submodule are downloaded, you need to compile ITK.
 #     This is totally similar to installing a standard version of ITK.
 #     Use CMake and your favorite C++ Compiler.
-#     For more help on the matter, several tutorial can be found on ITK website
+#     In the ITK folder, create a build directory, and move in it.
 
-http://www.itk.org/ITK/help/tutorials.html
+mkdir Build
+cd ./Build
 
-#     For a better use of ITK, make sure to build examples, testing and reviews 
-#     by setting on the following variable in CMake configuration in CMake advance mode.
-#     Take note that setting the examples and the testing will make 
-#     the compilation much slower, but will unsure that you have a perfectly 
-#     installed version of ITK.
+#     This directory will, in a close future, contain all the compiled library and executable.
+#     You need now to generate a makefile that will allow you to compile ITK.
+#     For that, CMake is our best friend. Still in the Build repository, run the command
+#     ccmake on the CMakeLists.txt located in the ITK directory. In our case it should be
+
+ccmake ..
+
+#     A kind of graphic interface should appear in your terminal that display a list of variables
+#     and their status.
+#     Toggle the "advance mode" by pressing the 't' key (a lot more variable will appear, 
+#     keep calm and go on) and set the following variable to ON. 
 
 BUILD_EXAMPLES ON
 BUILD_TESTING  ON
 ITK_USE_REVIEW ON
 
-#     Once ITK compiled, run the test command "CTest" into your Build repository
-#     in order to check if the installation went correctly.
+#     This will assure you that your ITK installation will be totally valide. 
+#     However, be prepared to have some card game, coffee, and a good procrastination
+#     website as the compilation will take a little be of time 
+#     (intel i5 cpu + 4Gb memory = 2 hours of compilation)  
+#     If you have no fear, you can try to win some time by putting OFF the 
+#     BUILD_EXAMPLES and the BUILD_TESTING, by we do not advise it.
+#
+#     It is now time to configure by pressing the 'c' key and then, when the configuration is done,
+#     to press the 'g' key to generate the makefile and leave CMake.
+#
+#     You should be back to your terminal. Still in the build repository, it is time to compile
+#     everything. For that, type
 
-# 2 - Delaunay Triangulation and Simplex Mesh
-#     Once ITK is running perfectly, download our repository from github. 
+make
 
-git clone https://github.com/ComplexSystemsModeling/itkVoronoiQuadEdgeMeshFilter.git 
+#     And leave him be.
+#
+#     For more help on the matter (if you are using windows for example), 
+#     several tutorial can be found on ITK website
+
+http://www.itk.org/ITK/help/tutorials.html
+
+#     2 hours later
+#     Once ITK is compiled, we should verify that all went well.
+#     For that, still in the Build repository, run the command 
+
+ctest
+
+#     This should run automatically a set of test to verify that all is working.
+#     It may take a bit of time, but not that much.
+#
+#     Congratulation! You have successfully installed ITK.
+
+
+
+# 2 - Delaunay Triangulation and Simplex Mesh project
+#     Once ITK is running perfectly, go where you want to install the projects and 
+#     download our sources from github. 
+
+cd ~/"thepathyouwant"
+git clone https://github.com/ComplexSystemsModeling/itkVoronoiQuadEdgeMeshFilter.git
+
+#     Like previously, the itkVoronoiQuadEdgeMeshFilter repository has been created.
+#     Go in, and update possible submodules
+     
 cd ./itkVoronoiQuadEdgeMeshFilter
 git submodule update --init
 
-#     The repository should contain the sources of
-#       - the Point In Circle
-#       - the Walk In Triangulation
-#       - the Delaunay Triangulation
-#       - the Simplex Mesh
-#       - A CMakeLists.txt
+#     When is done, you should have in the directory
+#       - PointInCircle folder
+#       - WalkInTriangulation folder
+#       - DelaunayTriangulation folder
+#       - SimplexMesh folder
+#       - Documentation folder
+#       - CMakeLists.txt file
+#       - README.txt file
 #
-#     Use CMake to configure and compile the different projects and 
-#     run the command "CTest" into your Build repository to verify that all is good.
-#     All the tests should pass.
-#     An example of each filter can be found in the source repository of each project.
+#     Like for ITK, create a Build folder
+
+mkdir ./Build
+cd ./Build
+
+#     And again, use CMake on the CMakeLists.txt to configure and compile the different projects
+
+ccmake ..
+
+#     You should only need to modify the ITK_DIR variable and put the path to the ITK Build 
+
+ITK_DIR /"pathtoyourhomedirectory"/"thepathtoITK"/ITK/Build
+
+#     Press 'c' and then 'g' key to configure and generate the makefile.
+#     And compile
+
+make
+
+#     run the command 
+
+ctest
+
+#     Again, all the tests should pass.
+#     Congratulation! You have install our projects on your computer.
+#     
+#     You should have, in the Build directory, three new directories
+
+WalkInTriangulation
+DelaunayTriangulation
+SimplexMesh
+
+#     That respectfully contain executable of the same name.
+#     You can run them to have a quick example of their results.
+#
+#     An example on how to use each filter can be found in the source repository of each project.
 
 itkVoronoiQuadEdgeMeshFilter/SimplexMesh/src/SimplexMesh.cxx
 itkVoronoiQuadEdgeMeshFilter/DelaunayTriangulation/src/DelaunayTriangulation.cxx
@@ -71,4 +160,5 @@ PrimalToDual - ToBePublished
 
 # Please, be aware that those project are, for some of them, still under progress.
 # Therefore you may encounter some bugs, if so, feel free to inform us about them.
+# Same if you have any questions about our work.
 

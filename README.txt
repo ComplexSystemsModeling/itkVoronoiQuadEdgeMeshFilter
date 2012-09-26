@@ -44,8 +44,8 @@ cd ./Build
 
 ccmake ..
 
-#     A kind of graphic interface should appear in your terminal that display a list of variables
-#     and their status.
+#     A kind of graphic interface should appear in your terminal that display a list of 
+#     variables and their status.
 #     Toggle the "advance mode" by pressing the 't' key (a lot more variable will appear, 
 #     keep calm and go on) and set the following variable to ON. 
 
@@ -60,11 +60,11 @@ ITK_USE_REVIEW ON
 #     If you have no fear, you can try to win some time by putting OFF the 
 #     BUILD_EXAMPLES and the BUILD_TESTING, by we do not advise it.
 #
-#     It is now time to configure by pressing the 'c' key and then, when the configuration is done,
-#     to press the 'g' key to generate the makefile and leave CMake.
+#     It is now time to configure by pressing the 'c' key and then, when the configuration 
+#     is done, to press the 'g' key to generate the makefile and leave CMake.
 #
-#     You should be back to your terminal. Still in the build repository, it is time to compile
-#     everything. For that, type
+#     You should be back to your terminal. Still in the build repository, it is time to 
+#     compile everything. For that, type
 
 make
 
@@ -115,7 +115,8 @@ git submodule update --init
 mkdir ./Build
 cd ./Build
 
-#     And again, use CMake on the CMakeLists.txt to configure and compile the different projects
+#     And again, use CMake on the CMakeLists.txt to configure 
+#     and compile the different projects.
 
 ccmake ..
 
@@ -144,7 +145,8 @@ SimplexMesh
 #     That respectfully contain executable of the same name.
 #     You can run them to have a quick example of their results.
 #
-#     An example on how to use each filter can be found in the source repository of each project.
+#     An example on how to use each filter can be found in the source repository of 
+#     each project.
 
 itkVoronoiQuadEdgeMeshFilter/SimplexMesh/src/SimplexMesh.cxx
 itkVoronoiQuadEdgeMeshFilter/DelaunayTriangulation/src/DelaunayTriangulation.cxx

@@ -1,34 +1,39 @@
+/*================================================================================
+ *                                                                               *
+ * Quad Edge Mesh With Dual                                                      *
+ *                                                                               *
+ *   Implementation for ITK by Humayun Irshad and Alexandre Gouaillard           *
+ *   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR                           *
+ *   Singapore                                                                   *
+ *   http://www.ipal.cnrs.fr                                                     * 
+ *                                                                               *
+ *===============================================================================*/
+
+// ITK Includes
+#include "itkVTKPolyDataWriter.h"
+#include "itkQuadEdgeMeshEulerOperatorsTestHelper.h"
+#include "itkRegularSphereMeshSource.h"
+
+// Our Includes
 #include "itkQuadEdgeMeshWithDual.h"
 #include "itkQuadEdgeMeshToQuadEdgeMeshWithDualFilter.h"
 #include "itkQuadEdgeMeshWithDualAdaptor.h"
-#include "itkVTKPolyDataWriter.h"
-#include "itkQuadEdgeMeshEulerOperatorsTestHelper.h"
-
 #include "itkBarycentreDualPointFunctor.h"
 #include "itkCircumcentreDualPointFunctor.h"
 
-#include "itkPointSetToDelaunayTriangulationFilter.h"
-
+// STD Includes
 #include <iostream>
-
-#include "itkRegularSphereMeshSource.h"
 
 int main( int argc, char * argv[] )
 {
   
-  if( argc > 2 )
+  if( argc != 2 )
     {
     std::cerr << "Exit wrong arguments" << std::endl;
-    std::cerr << "Usage - please provide a number of point." << std::endl;
-    std::cerr << "Default - No argument needed" << std::endl;
-    
+    std::cerr << "Usage argument - Provide a type of mesh as argument" << std::endl;
+    std::cerr << "                 \"plan\" - \"sphere\" " << std::endl;
+      
     return EXIT_FAILURE;
-    }
-  
-  unsigned int NumberOfPoints = 0;
-  if( argc == 2 )
-    {
-    NumberOfPoints = (unsigned int) atoi(argv[1]);  
     }
   
   //-----------------------------------------
@@ -42,21 +47,23 @@ int main( int argc, char * argv[] )
   // the mesh type
   typedef itk::QuadEdgeMeshWithDual< PixelType, dimension > SimplexMeshType;
   typedef itk::QuadEdgeMesh< PixelType, dimension > MeshType;
+  
   // test mesh sphere
   typedef itk::RegularSphereMeshSource< MeshType > SphereMesh;
-  // the pointset to primal filter  
-  typedef itk::PointSetToDelaunayTriangulationFilter< MeshType > PrimalFilterType;
-  // the primal to primal+dual filter
-  typedef itk::Functor::CircumcentreDualPointFunctor< MeshType, SimplexMeshType > DualFunctor;
-  //typedef itk::Functor::BarycentreDualPointFunctor< MeshType, SimplexMeshType > DualFunctor;
-  typedef itk::QuadEdgeMeshToQuadEdgeMeshWithDualFilter< MeshType, SimplexMeshType, DualFunctor > DualFilterType;
+  
+  // the dual point functor
+  typedef itk::Functor::BarycentreDualPointFunctor< MeshType, SimplexMeshType > BaryDualFunctor;
+  typedef itk::Functor::CircumcentreDualPointFunctor< MeshType, SimplexMeshType > CircumDualFunctor;
 
+  // the primal to primal+dual filter
+  typedef itk::QuadEdgeMeshToQuadEdgeMeshWithDualFilter< MeshType, SimplexMeshType, BaryDualFunctor > BaryDualFilterType;
+  typedef itk::QuadEdgeMeshToQuadEdgeMeshWithDualFilter< MeshType, SimplexMeshType, CircumDualFunctor > CircumDualFilterType;
+
+  typedef itk::QuadEdgeMeshWithDualAdaptor< SimplexMeshType >  AdaptorType;
   
   // all the filters to write the result
   typedef itk::VTKPolyDataWriter<SimplexMeshType> MeshWriterType;
   typedef itk::VTKPolyDataWriter<MeshType> WriterType;
-
-  typedef itk::QuadEdgeMeshWithDualAdaptor< SimplexMeshType >  AdaptorType;
   typedef itk::VTKPolyDataWriter< AdaptorType > DualMeshWriterType;
 
   //--------------------------------------------------------------
@@ -69,72 +76,53 @@ int main( int argc, char * argv[] )
   // Create an input mesh to toy around with
   //-----------------------------------------
 
-  std::cout << "Main: Create a planar PointSet." << std::endl;
-
-  // NOTE ALEX: is this cross platform? 
-  srand(time(NULL));
+  std::cout << "Main: Create an input mesh." << std::endl;
  
-  if( NumberOfPoints > 0 )
+  if( strcmp(argv[1],"plan") == 0 )
     {
-    std::cout << "Main: Create a random planar PointSet." << std::endl;
-    std::vector< MeshType::PointType > oPt( NumberOfPoints );
-    unsigned int i = 0;
-    while( i < NumberOfPoints )
-      {
-      oPt[i][0] = static_cast<PixelType>( rand() % 1000 - 500 );  
-      oPt[i][1] = static_cast<PixelType>( rand() % 1000 - 500 );
-      oPt[i][2] = static_cast<PixelType>( rand() % 100 - 50 );
-      myPrimalMesh->SetPoint( i, oPt[i] );
-      i++;
-      }
+    std::cout << "Main: Create a regular planar mesh." << std::endl;
+    CreateSquareTriangularMesh< MeshType >( myPrimalMesh );
+     
+    std::cout << "Main: Poke a hole in the mesh to have two boundaries." << std::endl;
+    myPrimalMesh->LightWeightDeleteEdge( myPrimalMesh->FindEdge( 11, 12 ) );
+    }
+  else if( strcmp(argv[1],"sphere") == 0 )  
+    {
+    std::cout << "Main: Create a regular sphere mesh." << std::endl;
+    SphereMesh::Pointer sphere = SphereMesh::New();
+    sphere->SetResolution( 4 );
+    sphere->Update();
+    myPrimalMesh = sphere->GetOutput();
     }
   else 
     {
-    std::cout << "Main: Create a 3D pyramid PointSet." << std::endl;
-    std::vector< MeshType::PointType > oPt( 5 );
-    oPt[0][0] = 0;    oPt[0][1] = 0;    oPt[0][2] = 0;
-    oPt[1][0] = 0.5;  oPt[1][1] = 0.5;  oPt[1][2] = 0;
-    oPt[2][0] = 0.5;  oPt[2][1] = -0.5; oPt[2][2] = 0;
-    oPt[3][0] = -0.5; oPt[3][1] = -0.5; oPt[3][2] = 0;
-    oPt[4][0] = -0.5; oPt[4][1] = 0.5;  oPt[4][2] = 0;
-    for( unsigned int i = 0; i< 5; i++ )
-      {
-      myPrimalMesh->SetPoint( i, oPt[i] );
-      }
+    std::cerr << "Main: Bad argument for the mesh type." << std::endl;
+    return EXIT_FAILURE;
     }
-
-  WriterType::Pointer test = WriterType::New();
-  test->SetInput(myPrimalMesh);
-  test->SetFileName( "test.vtk" );
-  test->Update();
-  
-  std::cout << "Main: Create a Delaunay triangulation planar mesh." << std::endl;
-    
-  PrimalFilterType::Pointer myPrimalFilter = PrimalFilterType::New();
-  myPrimalFilter->SetInput( myPrimalMesh );
-  try 
-    {
-    myPrimalFilter->Update();
-    }
-  catch (int e) 
-    {
-    std::cerr << "Main: Error catch in PointSetToDelaunayTriangulationFilter." << std::endl;
-    }
-  
-  SphereMesh::Pointer sphere = SphereMesh::New();
-  sphere->SetResolution( 4 );
-  sphere->Update();
   
   //------------
   // Do the job
   //------------
 
-  std::cout << "Main: Apply filter." << std::endl;
-  DualFilterType::Pointer myDualFilter = DualFilterType::New();
-  myDualFilter->SetInput( myPrimalFilter->GetOutput() );
+  std::cout << "Main: Apply the Primal to Dual filter." << std::endl;
+  BaryDualFilterType::Pointer myBaryDualFilter = BaryDualFilterType::New();
+  myBaryDualFilter->SetInput( myPrimalMesh );
   try
     {
-    myDualFilter->Update( );
+    myBaryDualFilter->Update( );
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Main: Exception thrown while processing the input." << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+  
+  CircumDualFilterType::Pointer myCircumDualFilter = CircumDualFilterType::New();
+  myCircumDualFilter->SetInput( myPrimalMesh );
+  try
+    {
+    myCircumDualFilter->Update( );
     }
   catch( itk::ExceptionObject & excp )
     {
@@ -149,17 +137,26 @@ int main( int argc, char * argv[] )
 
   std::cout << "Main: Write primal mesh." << std::endl;
   MeshWriterType::Pointer writer1 = MeshWriterType::New();
-  writer1->SetInput( myDualFilter->GetOutput() );
-  writer1->SetFileName( "PrimalOutput.vtk" );
+  writer1->SetInput( myBaryDualFilter->GetOutput() );
+  writer1->SetFileName( "PrimalMesh.vtk" );
   writer1->Write();
 
   AdaptorType* adaptor = new AdaptorType();
-  adaptor->SetInput( myDualFilter->GetOutput() );
+  adaptor->SetInput( myBaryDualFilter->GetOutput() );
 
-  std::cout << "Main: Write dual mesh." << std::endl;
+  std::cout << "Main: Write bary dual mesh." << std::endl;
   DualMeshWriterType::Pointer writer2 = DualMeshWriterType::New();
   writer2->SetInput( adaptor );
-  writer2->SetFileName( "DualOutput.vtk" );
+  writer2->SetFileName( "BaryDualMesh.vtk" );
+  writer2->Write();
+  
+  adaptor = new AdaptorType();
+  adaptor->SetInput( myCircumDualFilter->GetOutput() );
+  
+  std::cout << "Main: Write circum dual mesh." << std::endl;
+  writer2 = DualMeshWriterType::New();
+  writer2->SetInput( adaptor );
+  writer2->SetFileName( "CircumDualMesh.vtk" );
   writer2->Write();
 
   //-----------------------------------------------------

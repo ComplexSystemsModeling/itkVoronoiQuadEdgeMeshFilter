@@ -1,3 +1,18 @@
+/*================================================================================
+ *                                                                               *
+ * Delaunay Triangulation main program                                           *
+ *                                                                               *
+ *   Implementation for ITK by Stéphane Ulysse Rigaud and Alexandre Gouaillard   *
+ *   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR                           *
+ *   Singapore                                                                   *
+ *   http://www.ipal.cnrs.fr                                                     * 
+ *                                                                               *
+ *   Inputs: "regular" + nbRows                                                  *
+ *           "random"  + nbPoints                                                *
+ *           "circle"  + radius                                                  *
+ *           "cross"   + axeLength                                               *
+ *                                                                               *
+ *===============================================================================*/
 
 #include "itkPointSet.h"
 #include "itkQuadEdgeMesh.h"
@@ -150,7 +165,6 @@ main( int argc, char* argv[] )
   typedef itk::DelaunayConformingQuadEdgeMeshFilter< MeshType, MeshType > ValidityTestType;
   typedef itk::VTKPolyDataWriter< MeshType >  MeshWriterType;
   
-  int type           = atoi( argv[1] );
   int meshSize       = atoi( argv[2] );
   int expectedNumPts = 0;
 
@@ -160,28 +174,28 @@ main( int argc, char* argv[] )
 
   // -------------------------------------------------
   // Toy Point Set creation
-  
-  switch(type) 
+    
+  if( strcmp(argv[1],"regular") == 0 )
     {
-    case 1 :     
-      pts = GeneratePointCoordinates< PointSetType >( meshSize ); 
-      break;
-    case 2 :
-      pts = GenerateRandomCoordinates< PointSetType >( meshSize ); 
-      break;
-    case 3 :
-      pts = GenerateCircleCoordinates< PointSetType >( meshSize );    
-      break;
-    case 4 :
-      pts = GenerateConcentricCoordinates< PointSetType >( meshSize );
-      break;
-    case 5 :
-      pts = GenerateCrossCoordinates< PointSetType >( meshSize );
-      break;
-    default:
-      std::cerr << "Exit wrong arguments for PointSet Generator" << std::endl;
-      std::cerr << std::endl;
-      return EXIT_FAILURE;
+    pts = GeneratePointCoordinates< PointSetType >( meshSize ); 
+    }
+  else if( strcmp(argv[1],"random") == 0 )
+    {
+    pts = GenerateRandomCoordinates< PointSetType >( meshSize ); 
+    }
+  else if( strcmp(argv[1],"circle") == 0 )
+    {
+    pts = GenerateCircleCoordinates< PointSetType >( meshSize );   
+    }
+  else if( strcmp(argv[1],"cross") == 0 )
+    {
+    pts = GenerateCrossCoordinates< PointSetType >( meshSize );
+    }
+  else
+    {
+    std::cerr << "Exit wrong arguments for PointSet Generator" << std::endl;
+    std::cerr << std::endl;
+    return EXIT_FAILURE; 
     }
   
   expectedNumPts = pts.size();
@@ -213,7 +227,7 @@ main( int argc, char* argv[] )
     }
 
   MeshWriterType::Pointer writer = MeshWriterType::New();
-  writer->SetFileName( "OutputMesh.vtk" );
+  writer->SetFileName( "DelaunayTriangulationMesh.vtk" );
   writer->SetInput( triangulatedMesh );
   writer->Update();
    

@@ -3,7 +3,7 @@
  * Delaunay Triangulation Incremental Algorithm                                  *
  *                                                                               *
  *                                                                               *
- *   Implementation for ITK by Stéphane Ulysse Rigaud                            *
+ *   Implementation for ITK by Stéphane Ulysse Rigaud and Alexandre Gouaillard   *
  *   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR                           *
  *   Singapore                                                                   *
  *   http://www.ipal.cnrs.fr                                                     * 
@@ -29,7 +29,7 @@
 // - Modify dummy points coordinates to be at infinity 
 //
 // BUG
-// - segmentation fault with some configuration of points
+// - segmentation fault with some particular configuration of points
 
 namespace itk {
   
@@ -58,7 +58,6 @@ public:
   itkStaticConstMacro( PointDimension, unsigned int, MeshType::Traits::PointDimension );
   
   /** Some convenient typedefs.    */
-  //typedef          TOutMesh                          MeshType;
   typedef typename MeshType::Pointer                 MeshPointer;
   typedef typename MeshType::PixelType               PixelType;
   typedef typename MeshType::PointType               PointType;

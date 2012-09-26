@@ -1,3 +1,14 @@
+/*============================================================================================
+ *                                                                                           *
+ * Quad Edge Mesh To Quad Edge Mesh With Dual                                                *
+ *                                                                                           *
+ *   Implementation for ITK by Humayun Irshad, Stéphane U. Rigaud and Alexandre Gouaillard   *
+ *   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR                                       *
+ *   Singapore                                                                               *
+ *   http://www.ipal.cnrs.fr                                                                 * 
+ *                                                                                           *
+ *===========================================================================================*/
+
 #include "itkQuadEdgeMeshBoundaryEdgesMeshFunction.h"
 #include "itkQuadEdgeMeshToQuadEdgeMeshFilter.h"
 
@@ -35,13 +46,8 @@ public:
   itkNewMacro(Self);
 
   // our types
-
-  // NOTE ALEX: to extract from MeshType
-  // NOTE STEF: done
   itkStaticConstMacro( PointDimension, unsigned int, TInputMesh::Traits::PointDimension );
-  //static const unsigned int dimension = 3;
   
-  // NOTE STEF: Functor Get/Set and typedef
   typedef TDualFunction FunctorType;
   /** Get the functor object.  The functor is returned by reference.
    * (Functors do not have to derive from itk::LightObject, so they do
@@ -115,6 +121,7 @@ protected:
     //-----------------------------------------
     // last pass: Treat the borders as 1D cells
     //-----------------------------------------
+    // NOTE STEPH: Variable check for which type of border we want should be done here
     std::cout << "Filter: Handle Borders." << std::endl;
     typename BoundaryLocatorType::Pointer boundaryEdges = BoundaryLocatorType::New();
     OutputMeshPointerType myPrimalMesh = this->GetOutput();
@@ -180,11 +187,11 @@ private:
       PointType destinationPoint = myPrimalMesh->GetPoint( destinationPointId );
 
       PointType currentPoint;
-      // NOTE ALEX: TODO extract dimension from MeshTye
       for( unsigned int k =0; k < PointDimension; k++ )
         {
         currentPoint[k] = (originPoint[k] + destinationPoint[k]) / 2 ;
         }
+        
       // add the new border dual point P1 to the dual point container
       currentPointId = myPrimalMesh->AddDualPoint( currentPoint );
 

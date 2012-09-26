@@ -1,3 +1,14 @@
+/*================================================================================
+ *                                                                               *
+ * Quad Edge Mesh With Dual Adaptor                                              *
+ *                                                                               *
+ *   Implementation for ITK by Humayun Irshad and Alexandre Gouaillard           *
+ *   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR                           *
+ *   Singapore                                                                   *
+ *   http://www.ipal.cnrs.fr                                                     * 
+ *                                                                               *
+ *===============================================================================*/
+
 #include <iostream>
 
 namespace itk

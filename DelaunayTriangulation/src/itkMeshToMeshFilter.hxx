@@ -79,78 +79,6 @@ MeshToMeshFilter< TInputMesh, TOutputMesh >
          ( this->ProcessObject::GetInput(idx) );
 }
 
-/*
-template< class TInputMesh, class TOutputMesh >
-void
-MeshToMeshFilter< TInputMesh, TOutputMesh >
-::CopyInputMeshToOutputMeshPoints(void)
-{
-  const InputMeshType *inputMesh   =  this->GetInput();
-  OutputMeshPointer    outputMesh   =  this->GetOutput();
-
-  typedef typename TOutputMesh::PointsContainer OutputPointsContainer;
-  typedef typename TInputMesh::PointsContainer  InputPointsContainer;
-
-  typename OutputPointsContainer::Pointer outputPoints = OutputPointsContainer::New();
-  const InputPointsContainer *inputPoints = inputMesh->GetPoints();
-
-  if ( inputPoints )
-    {
-    outputPoints->Reserve( inputPoints->Size() );
-
-    typename InputPointsContainer::ConstIterator inputItr = inputPoints->Begin();
-    typename InputPointsContainer::ConstIterator inputEnd = inputPoints->End();
-
-    typename OutputPointsContainer::Iterator outputItr = outputPoints->Begin();
-
-    while ( inputItr != inputEnd )
-      {
-      outputItr.Value() = inputItr.Value();
-      ++inputItr;
-      ++outputItr;
-      }
-
-    outputMesh->SetPoints(outputPoints);
-    }
-}
-*/
-
-/*
-template< class TInputMesh, class TOutputMesh >
-void
-MeshToMeshFilter< TInputMesh, TOutputMesh >
-::CopyInputMeshToOutputMeshPointData(void)
-{
-  const InputMeshType *inputMesh   =  this->GetInput();
-  OutputMeshPointer    outputMesh   =  this->GetOutput();
-
-  typedef typename TOutputMesh::PointDataContainer OutputPointDataContainer;
-  typedef typename TInputMesh::PointDataContainer  InputPointDataContainer;
-
-  typename OutputPointDataContainer::Pointer outputPointData = OutputPointDataContainer::New();
-  const InputPointDataContainer *inputPointData = inputMesh->GetPointData();
-
-  if ( inputPointData )
-    {
-    outputPointData->Reserve( inputPointData->Size() );
-
-    typename InputPointDataContainer::ConstIterator inputItr = inputPointData->Begin();
-    typename InputPointDataContainer::ConstIterator inputEnd = inputPointData->End();
-
-    typename OutputPointDataContainer::Iterator outputItr = outputPointData->Begin();
-
-    while ( inputItr != inputEnd )
-      {
-      outputItr.Value() = inputItr.Value();
-      ++inputItr;
-      ++outputItr;
-      }
-
-    outputMesh->SetPointData(outputPointData);
-    }
-}
-*/
-
 template< class TInputMesh, class TOutputMesh >
 void
 MeshToMeshFilter< TInputMesh, TOutputMesh >
@@ -215,7 +143,7 @@ MeshToMeshFilter< TInputMesh, TOutputMesh >
 
     while ( inputItr != inputEnd )
       {
-//      outputItr.Value() = inputItr.Value();
+      // outputItr.Value() = inputItr.Value();
       // BUG: FIXME: Here we are copying a pointer, which is a mistake. What we
       // should do is to clone the cell.
       inputItr.Value()->MakeCopy(clone);

@@ -3,7 +3,7 @@
  * Delaunay Triangulation Incremental Algorithm                                  *
  *                                                                               *
  *                                                                               *
- *   Implementation for ITK by Stéphane Ulysse Rigaud                            *
+ *   Implementation for ITK by Stéphane Ulysse Rigaud and Alexandre Gouaillard   *
  *   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR                           *
  *   Singapore                                                                   *
  *   http://www.ipal.cnrs.fr                                                     * 
@@ -182,7 +182,7 @@ RecursiveFlipEdgeTest( PointIdentifier pointIndex,
     j++;
     }
 
-  // NOTE STEF: the boolean parameter of the test should be remove in a near future  
+  // NOTE STEPH: the boolean parameter of the test should be remove in a near future  
   if( TestPointInTriangleInMesh< MeshType >( mesh, adjCell.first, pointCoord, true ) ) 
     {
     FlipEdgeFunctionPointer flipedge = FlipEdgeFunction::New();
@@ -221,7 +221,7 @@ AddPoint( PointIdentifier pointIndex,
     std::cerr << "ERROR - Exception caught in the WalkInTriangulation process" << std::endl;
     throw -1;
     }
-  // NOTE STEF: Use a cleaner way to get the last value of a VectorContainer
+  // NOTE STEPH: Use a cleaner way to get the last value of a VectorContainer
   FaceRefType cellIndex = ( --cellIdList->End() )->Value();
 
   CellAutoPointer              cellPointer;

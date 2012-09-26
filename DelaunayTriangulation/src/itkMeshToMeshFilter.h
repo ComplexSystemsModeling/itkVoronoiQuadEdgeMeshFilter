@@ -78,10 +78,6 @@ protected:
   MeshToMeshFilter();
   ~MeshToMeshFilter() {}
 
-  //void CopyInputMeshToOutputMeshPoints();
-
-  //void CopyInputMeshToOutputMeshPointData();
-
   void CopyInputMeshToOutputMeshCellLinks();
 
   void CopyInputMeshToOutputMeshCells();

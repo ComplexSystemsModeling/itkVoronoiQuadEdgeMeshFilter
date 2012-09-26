@@ -51,14 +51,14 @@ target_link_libraries( DelaunayTriangulation
 include( CTest )
 
 add_test( DelaunayTriangulation01
-  DelaunayTriangulation 1 10
+  DelaunayTriangulation regular 5
   )
 add_test( DelaunayTriangulation02
-  DelaunayTriangulation 1 20
+  DelaunayTriangulation regular 10
   )
 add_test( DelaunayTriangulation03
-  DelaunayTriangulation 2 10
+  DelaunayTriangulation random 10
   )
 add_test( DelaunayTriangulation04
-  DelaunayTriangulation 2 1000
+  DelaunayTriangulation random 1000
   )

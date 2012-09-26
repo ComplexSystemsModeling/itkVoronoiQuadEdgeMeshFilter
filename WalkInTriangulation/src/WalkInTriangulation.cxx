@@ -1,13 +1,13 @@
 /*===============================================================================
 *                                                                               *
-* Walking in a Triangulation algorithm implementation test                      *
+* Walking in a Triangulation main                                               *
 *                                                                               *
 *   Based on:                                                                   *
 *   Devillers, O. and Pion, S. and Teillaud, M. "Walking in a triangulation",   *
 *   Proceedings of the seventeenth annual symposium on Computational geometry,  *
 *   pages 106-114, 2001                                                         *
 *                                                                               *
-*   Implementation for ITK by Stéphane Ulysse Rigaud                            *
+*   Implementation for ITK by Stéphane Ulysse Rigaud and Alexandre Gouaillard   *
 *   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR                           *
 *   Singapore                                                                   *
 *   http://www.ipal.cnrs.fr                                                     *
@@ -73,12 +73,6 @@ int main( int argc, char * argv[] )
   
   QEMeshType::Pointer mesh = QEMeshType::New();
   CreateSquareTriangularMesh< QEMeshType >( mesh );
-
-  std::cout << std::endl << "No. of Cells  : " << mesh->GetNumberOfCells();
-  std::cout << std::endl << "No. of Edges  : " << mesh->GetNumberOfEdges();
-  std::cout << std::endl << "No. of Faces  : " << mesh->GetNumberOfFaces();
-  std::cout << std::endl << "No. of Points : " << mesh->GetNumberOfPoints();
-  std::cout << std::endl << std::endl;
 
   // -----------------------------------------------------
   // WalkInTriangulation process

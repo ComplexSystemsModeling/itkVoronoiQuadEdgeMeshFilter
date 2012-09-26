@@ -14,8 +14,6 @@ include_directories( ${DelaunayTriangulation_DIR} )
 #
 set( SimplexMesh_src
   src/SimplexMesh.cxx
-  src/itkPointSetToDelaunayTriangulationFilter.hxx  
-  src/itkPointSetToMeshFilter.hxx
   ${predicates.c_location}
   )
 
@@ -27,10 +25,7 @@ set( SimplexMesh_header
   src/itkQuadEdgeMeshWithDualAdaptor.h
   src/itkCircumcenterFunctor.h
   src/itkCircumcenterDualPointFunctor.h
-  ${WalkInTriangulation_DIR}/itkWalkInTriangulationFunction.h
   ${PointInCircle_DIR}/itkPointInCircleGeometricalPredicateFunctor.h
-  src/itkPointSetToDelaunayTriangulationFilter.h
-  src/itkPointSetToMeshFilter.h
   )
 
 # if generate by Xcode add headers to executable
@@ -51,3 +46,15 @@ add_executable( SimplexMesh
 target_link_libraries( SimplexMesh
   ${ITK_LIBRARIES}
   )
+
+# test
+#
+include( CTest )
+
+add_test( SimplexMesh01
+  SimplexMesh plan
+  )
+add_test( SimplexMesh02
+  SimplexMesh sphere
+  )
+

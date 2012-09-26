@@ -1,3 +1,14 @@
+/*================================================================================
+ *                                                                               *
+ * Barycentre Dual Point Functor                                                 *
+ *                                                                               *
+ *   Implementation for ITK by Stéphane Ulysse Rigaud and Alexandre Gouaillard   *
+ *   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR                           *
+ *   Singapore                                                                   *
+ *   http://www.ipal.cnrs.fr                                                     * 
+ *                                                                               *
+ *===============================================================================*/
+
 #ifndef __BarycentreDualPointFunctor_h
 #define __BarycentreDualPointFunctor_h
 

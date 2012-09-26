@@ -7,7 +7,7 @@
  *   Proceedings of the seventeenth annual symposium on Computational geometry,  *
  *   pages 106-114, 2001                                                         *
  *                                                                               *
- *   Implementation for ITK by Stéphane Ulysse Rigaud                            *
+ *   Implementation for ITK by Stéphane Ulysse Rigaud and Alexandre Gouaillard   *
  *   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR                           *
  *   Singapore                                                                   *
  *   http://www.ipal.cnrs.fr                                                     * 
@@ -43,9 +43,6 @@
 
 namespace itk
 {
-// TODO
-// * Check Dual/Primal new data structure
-
 
 //---------------------------------------------------  
 // WalkInTriangulation Function

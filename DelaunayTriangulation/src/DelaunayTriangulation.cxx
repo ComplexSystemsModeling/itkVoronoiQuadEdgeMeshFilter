@@ -190,7 +190,7 @@ main( int argc, char* argv[] )
     }
   else
     {
-    std::cerr << "Exit wrong arguments for PointSet Generator" << std::endl;
+    std::cerr << "Main: Wrong arguments for PointSet Generator" << std::endl;
     std::cerr << std::endl;
     return EXIT_FAILURE; 
     }
@@ -209,7 +209,16 @@ main( int argc, char* argv[] )
  
   myfilter->SetInput( pointSet );
   triangulatedMesh = myfilter->GetOutput();
-  myfilter->Update();
+  try 
+    {
+    myfilter->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Main: Exception thrown while processing the input." << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
   
   // -------------------------------------------------
   // Delaunay Validation
@@ -226,7 +235,16 @@ main( int argc, char* argv[] )
   MeshWriterType::Pointer writer = MeshWriterType::New();
   writer->SetFileName( "DelaunayTriangulationMesh.vtk" );
   writer->SetInput( triangulatedMesh );
-  writer->Update();
+  try 
+    {
+    writer->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Main: Exception caught while writting the output." << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
    
   // ------------------------------------------------
   // End process ... by by

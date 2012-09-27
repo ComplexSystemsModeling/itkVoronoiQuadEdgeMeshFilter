@@ -90,12 +90,14 @@ int main( int argc, char * argv[] )
     { 
     resultPath = myFunction->Evaluate( mesh, pts, &cell );
     }
-  catch( int e )
+  catch( itk::ExceptionObject & excp )
     {
-    std::cerr << "error occured : "<< e << std::endl;
+    std::cerr << "Main: Exception thrown while processing the input." << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
     }
 
-  std::cout << "The point (" << pts[0] << ";" << pts[1] << ") is in the cell id ";
+  std::cout << "Main: The point (" << pts[0] << ";" << pts[1] << ") is in the cell id ";
   std::cout << resultPath->GetElement( resultPath->Size()-1 ).first << std::endl;
   
   // -----------------------------------------------------
@@ -104,7 +106,7 @@ int main( int argc, char * argv[] )
   
   if( argc > 5 )
     {
-    std::cout << "expected path : ";
+    std::cout << "Main: Expected path : ";
     VectorContainerType::Pointer expectedPath = VectorContainerType::New();
     FaceRefType tempRef;
     for( unsigned int i = 0; i < (unsigned int)atoi( argv[4] ); i++ )
@@ -113,7 +115,8 @@ int main( int argc, char * argv[] )
       expectedPath->InsertElement(i,tempRef);
       std::cout << argv[5+i] << " ";
       }
-    std::cout << "\nresult path : ";
+    std::cout << std::endl;
+    std::cout << "Main: Result path : ";
     VectorContainerType::Iterator ite = resultPath->Begin();
     while( ite != resultPath->End() )
       {

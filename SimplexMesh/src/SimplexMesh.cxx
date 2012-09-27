@@ -131,7 +131,7 @@ int main( int argc, char * argv[] )
     }
   catch( itk::ExceptionObject & excp )
     {
-    std::cerr << "Main: Exception thrown while processing the input." << std::endl;
+    std::cerr << "Main: Exception caught while processing the input." << std::endl;
     std::cerr << excp << std::endl;
     return EXIT_FAILURE;
     }
@@ -144,7 +144,7 @@ int main( int argc, char * argv[] )
     }
   catch( itk::ExceptionObject & excp )
     {
-    std::cerr << "Main: Exception thrown while processing the input." << std::endl;
+    std::cerr << "Main: Exception caught while processing the input." << std::endl;
     std::cerr << excp << std::endl;
     return EXIT_FAILURE;
     }
@@ -154,28 +154,55 @@ int main( int argc, char * argv[] )
   //-----------------------------------------------------
 
   std::cout << "Main: Write primal mesh." << std::endl;
-  MeshWriterType::Pointer writer1 = MeshWriterType::New();
-  writer1->SetInput( myBaryDualFilter->GetOutput() );
-  writer1->SetFileName( "PrimalMesh.vtk" );
-  writer1->Write();
+  MeshWriterType::Pointer writerPrimal = MeshWriterType::New();
+  writerPrimal->SetInput( myBaryDualFilter->GetOutput() );
+  writerPrimal->SetFileName( "PrimalMesh.vtk" );
+  try 
+    {
+    writerPrimal->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Main: Exception caught while writting the primal output." << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
 
   AdaptorType* adaptor = new AdaptorType();
   adaptor->SetInput( myBaryDualFilter->GetOutput() );
 
   std::cout << "Main: Write bary dual mesh." << std::endl;
-  DualMeshWriterType::Pointer writer2 = DualMeshWriterType::New();
-  writer2->SetInput( adaptor );
-  writer2->SetFileName( "BaryDualMesh.vtk" );
-  writer2->Write();
+  DualMeshWriterType::Pointer writerBary = DualMeshWriterType::New();
+  writerBary->SetInput( adaptor );
+  writerBary->SetFileName( "BaryDualMesh.vtk" );
+  try 
+    {
+    writerBary->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Main: Exception caught while writting the barycentre dual output." << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
   
   adaptor = new AdaptorType();
   adaptor->SetInput( myCircumDualFilter->GetOutput() );
   
   std::cout << "Main: Write circum dual mesh." << std::endl;
-  writer2 = DualMeshWriterType::New();
-  writer2->SetInput( adaptor );
-  writer2->SetFileName( "CircumDualMesh.vtk" );
-  writer2->Write();
+  DualMeshWriterType::Pointer writerCircum = DualMeshWriterType::New();
+  writerCircum->SetInput( adaptor );
+  writerCircum->SetFileName( "CircumDualMesh.vtk" );
+  try 
+    {
+    writerCircum->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Main: Exception caught while writting the circumcentre dual output." << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
 
   //-----------------------------------------------------
   // and ... we're outta here.

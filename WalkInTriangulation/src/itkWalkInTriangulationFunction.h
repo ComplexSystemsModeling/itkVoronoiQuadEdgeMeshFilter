@@ -153,7 +153,7 @@ public:
         pointB = pointC;
         if( myMesh->FindEdge( pointIdQ, pointIdC )->IsAtBorder() )
           {
-          throw -1;
+          itkExceptionMacro("itkWalkInTriangulationFunction - Point outside the mesh ");
           myCellIndex.first = -1; 
           break;
           }
@@ -171,7 +171,7 @@ public:
             myCellIndex = leftCell;
             }
           }
-
+          
         path->InsertElement( triangleVisitedCompter, myCellIndex );
         triangleVisitedCompter += 1;
 
@@ -204,7 +204,7 @@ public:
         pointC = pointB;
         if( myMesh->FindEdge( pointIdQ, pointIdB )->IsAtBorder() )
           {
-	  throw -1;
+          itkExceptionMacro("itkWalkInTriangulationFunction - Point outside the mesh ");
           myCellIndex.first = -1; 
           break;
           }
@@ -249,7 +249,7 @@ public:
       orientationTestCompter += 1;
       if( myMesh->FindEdge( pointIdC, pointIdB )->IsAtBorder() )
         {
-        throw -1;
+        itkExceptionMacro("itkWalkInTriangulationFunction - Point outside the mesh ");
         myCellIndex.first = -1; 
         break;
         }
@@ -301,7 +301,7 @@ public:
     }
   else
     {
-    throw -2;
+    itkExceptionMacro("itkWalkInTriangulationFunction - Initialisation cell not found");
     myCellIndex.first = -2;
     path->InsertElement( triangleVisitedCompter, myCellIndex );
     triangleVisitedCompter += 1;

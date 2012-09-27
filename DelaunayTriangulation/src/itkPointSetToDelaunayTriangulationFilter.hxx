@@ -130,13 +130,13 @@ RecursiveFlipEdgeTest( PointIdentifier pointIndex,
 
   if( !mesh->GetCell( cell.first, cellpointer ) )
     {
-    std::cerr << "ERROR - Could not find the cell given in parameter." << std::endl;
-    throw -1;
+    itkExceptionMacro( "itkPointSetToDelaunayTriangulationFilter::EdgeFlipTest" <<
+                        " - Could not find the cell given in argument" );
     }
   if( !mesh->GetPoint( pointIndex, &pointCoord ) )
     {
-    std::cerr << "ERROR - Could not find the point given in parameter." << std::endl;
-    throw -1;
+    itkExceptionMacro( "itkPointSetToDelaunayTriangulationFilter::EdgeFlipTest" <<
+                        " - Could not find the point given in argument" );
     }
 
   mesh->GetCell( cell.first, cellpointer );
@@ -212,10 +212,11 @@ AddPoint( PointIdentifier pointIndex,
     {
     cellIdList = walk->Evaluate( mesh, mesh->GetPoint(pointIndex), &startingCell );
     }
-  catch( int e ) 
+  catch( itk::ExceptionObject & excp ) 
     {
-    std::cerr << "ERROR - Exception caught in the WalkInTriangulation process" << std::endl;
-    throw -1;
+    std::cerr << excp << std::endl;
+    itkExceptionMacro( "itkPointSetToDelaunayTriangulationFilter::AddPoint" <<
+                       " - Exception caught while walking on the mesh" );
     }
   // NOTE STEPH: Use a cleaner way to get the last value of a VectorContainer
   FaceRefType cellIndex = ( --cellIdList->End() )->Value();
@@ -245,10 +246,37 @@ AddPoint( PointIdentifier pointIndex,
     p = mesh->AddFaceTriangle( cellPointsIds[2], cellPointsIds[0], pointIndex );  
     newCellIds[2] = p->GetLeft();
     
-    // Check the delaunay criterion 
-    this->RecursiveFlipEdgeTest( pointIndex, newCellIds[0] ); 
-    this->RecursiveFlipEdgeTest( pointIndex, newCellIds[1] ); 
-    this->RecursiveFlipEdgeTest( pointIndex, newCellIds[2] ); 
+    // Check the delaunay criterion
+    try 
+      {
+      this->RecursiveFlipEdgeTest( pointIndex, newCellIds[0] ); 
+      }
+    catch( itk::ExceptionObject & excp ) 
+      {
+      std::cerr << excp << std::endl;
+      itkExceptionMacro( "itkPointSetToDelaunayTriangulationFilter::AddPoint" <<
+                        " - Exception caught during the edgeflip test" );
+      }
+    try 
+      {
+      this->RecursiveFlipEdgeTest( pointIndex, newCellIds[1] ); 
+      }
+    catch( itk::ExceptionObject & excp ) 
+      {
+      std::cerr << excp << std::endl;
+      itkExceptionMacro( "itkPointSetToDelaunayTriangulationFilter::AddPoint" <<
+                        " - Exception caught during the edgeflip test" );
+      }
+    try 
+      {
+      this->RecursiveFlipEdgeTest( pointIndex, newCellIds[2] ); 
+      }
+    catch( itk::ExceptionObject & excp ) 
+      {
+      std::cerr << excp << std::endl;
+      itkExceptionMacro( "itkPointSetToDelaunayTriangulationFilter::AddPoint" <<
+                        " - Exception caught during the edgeflip test" );
+      }
     }
   return pointIndex;
 }
@@ -284,8 +312,17 @@ DelaunayTriangulation()
     currentPointIndex = pointIterator.Index();
     
     if( !mesh->GetPoint( currentPointIndex ).GetEdge() )
-      {        
-      currentPointIndex = this->AddPoint( currentPointIndex, FaceIndex );
+      {
+      try
+        {
+        currentPointIndex = this->AddPoint( currentPointIndex, FaceIndex );
+        }
+      catch( itk::ExceptionObject & excp ) 
+        {
+        std::cerr << excp << std::endl;
+        itkExceptionMacro( "itkPointSetToDelaunayTriangulationFilter::GenerateData" << 
+                           " - Exception caught while adding a point" );
+        }
     
       QEType* edge =  mesh->GetPoint( currentPointIndex ).GetEdge();
       FaceIndex = edge->GetLeft(); 

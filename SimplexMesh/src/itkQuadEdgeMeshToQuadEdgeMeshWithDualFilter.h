@@ -1,13 +1,11 @@
-/*============================================================================================
- *                                                                                           *
- * Quad Edge Mesh To Quad Edge Mesh With Dual                                                *
- *                                                                                           *
- *   Implementation for ITK by Humayun Irshad, Stéphane U. Rigaud and Alexandre Gouaillard   *
- *   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR                                       *
- *   Singapore                                                                               *
- *   http://www.ipal.cnrs.fr                                                                 * 
- *                                                                                           *
- *===========================================================================================*/
+/*==================================================================
+ *                                                                 *
+ * QuadEdgeMesh To QuadEdgeMeshWithDual                            *
+ *                                                                 *
+ *   Implementation for ITK by Humayun Irshad, Stéphane U. Rigaud  *
+ *   and Alexandre Gouaillard                                      *
+ *                                                                 *
+ *=================================================================*/
 
 #include "itkQuadEdgeMeshBoundaryEdgesMeshFunction.h"
 #include "itkQuadEdgeMeshToQuadEdgeMeshFilter.h"
@@ -78,6 +76,7 @@ public:
   typedef typename TOutputMesh::CellIdentifier     CellIdentifier;
   typedef typename TOutputMesh::PointIdentifier    PointIdentifier;
   typedef typename TOutputMesh::PointsContainer    PointsContainer;
+  typedef typename TOutputMesh::PointsContainerIterator PointsContainerIterator;
   typedef typename TOutputMesh::CellsContainer     CellsContainer;
   typedef typename TOutputMesh::CellType           CellType;
   typedef typename TOutputMesh::PointType          PointType;
@@ -191,10 +190,10 @@ private:
         {
         currentPoint[k] = (originPoint[k] + destinationPoint[k]) / 2 ;
         }
-        
+      
       // add the new border dual point P1 to the dual point container
       currentPointId = myPrimalMesh->AddDualPoint( currentPoint );
-
+        
       // 2. always add the edge between this (1D) point, and previous (2D) point
       // add the dual edge P1-P2
       // NOTE ALEX: do we know on which side the hole is. Is it stable?

@@ -1,11 +1,8 @@
 /*================================================================================
  *                                                                               *
- * Delaunay Triangulation main program                                           *
+ * Delaunay Triangulation Test                                                   *
  *                                                                               *
- *   Implementation for ITK by Stéphane Ulysse Rigaud and Alexandre Gouaillard   *
- *   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR                           *
- *   Singapore                                                                   *
- *   http://www.ipal.cnrs.fr                                                     * 
+ *   Implementation for ITK by Stéphane U. Rigaud and Alexandre Gouaillard       *
  *                                                                               *
  *   Inputs: "regular" + nbRows                                                  *
  *           "random"  + nbPoints                                                *

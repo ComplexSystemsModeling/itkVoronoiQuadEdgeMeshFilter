@@ -1,13 +1,10 @@
-/*================================================================================
- *                                                                               *
- * Quad Edge Mesh With Dual                                                      *
- *                                                                               *
- *   Implementation for ITK by Humayun Irshad and Alexandre Gouaillard           *
- *   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR                           *
- *   Singapore                                                                   *
- *   http://www.ipal.cnrs.fr                                                     * 
- *                                                                               *
- *===============================================================================*/
+/*======================================================================
+ *                                                                     *
+ * QuadEdgeMeshWithDual                                                *
+ *                                                                     *
+ *   Implementation for ITK by Humayun Irshad and Alexandre Gouaillard *
+ *                                                                     *
+ *=====================================================================*/
 
 #include "itkQuadEdgeMesh.h"
 #include "itkDefaultStaticMeshTraits.h"

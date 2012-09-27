@@ -7,17 +7,13 @@
  *   Proceedings of the seventeenth annual symposium on Computational geometry,  *
  *   pages 106-114, 2001                                                         *
  *                                                                               *
- *   Implementation for ITK by Stéphane Ulysse Rigaud and Alexandre Gouaillard   *
- *   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR                           *
- *   Singapore                                                                   *
- *   http://www.ipal.cnrs.fr                                                     * 
+ *   Implementation for ITK by Stéphane U. Rigaud and Alexandre Gouaillard       *
  *                                                                               *
  *   Input: itk::Mesh*          input mesh                                       *
  *          Mesh::PointType&    point coordinate                                 *
  *          unsigned int        starting cell id                                 *
  *                                                                               *
  *   Output: itk::vectorContainer  list of visited triangle index                *
- *                                                                               *
  *                                                                               *
  *===============================================================================*/
 

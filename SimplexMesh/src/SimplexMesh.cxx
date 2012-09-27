@@ -1,13 +1,11 @@
-/*================================================================================
- *                                                                               *
- * Quad Edge Mesh With Dual                                                      *
- *                                                                               *
- *   Implementation for ITK by Humayun Irshad and Alexandre Gouaillard           *
- *   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR                           *
- *   Singapore                                                                   *
- *   http://www.ipal.cnrs.fr                                                     * 
- *                                                                               *
- *===============================================================================*/
+/*=================================================================
+ *                                                                *
+ * Simplex Mesh Test                                              *
+ *                                                                *
+ *   Implementation for ITK by Humayun Irshad, Stéphane U. Rigaud *
+ *   and Alexandre Gouaillard                                     *
+ *                                                                *
+ *================================================================*/
 
 // ITK Includes
 #include "itkVTKPolyDataWriter.h"
@@ -21,20 +19,22 @@
 #include "itkBarycentreDualPointFunctor.h"
 #include "itkCircumcentreDualPointFunctor.h"
 
+#include "itkPointSetToDelaunayTriangulationFilter.h"
+
 // STD Includes
 #include <iostream>
 
 int main( int argc, char * argv[] )
 {
   
-  if( argc != 2 )
+  /*if( argc != 2 )
     {
     std::cerr << "Exit wrong arguments" << std::endl;
     std::cerr << "Usage argument - Provide a type of mesh as argument" << std::endl;
     std::cerr << "                 \"plan\" - \"sphere\" " << std::endl;
       
     return EXIT_FAILURE;
-    }
+    }*/
   
   //-----------------------------------------
   //  Define all the types we will work with
@@ -55,6 +55,9 @@ int main( int argc, char * argv[] )
   typedef itk::Functor::BarycentreDualPointFunctor< MeshType, SimplexMeshType > BaryDualFunctor;
   typedef itk::Functor::CircumcentreDualPointFunctor< MeshType, SimplexMeshType > CircumDualFunctor;
 
+  // the pointset to primal filter  
+  typedef itk::PointSetToDelaunayTriangulationFilter< MeshType > PrimalFilterType;
+  
   // the primal to primal+dual filter
   typedef itk::QuadEdgeMeshToQuadEdgeMeshWithDualFilter< MeshType, SimplexMeshType, BaryDualFunctor > BaryDualFilterType;
   typedef itk::QuadEdgeMeshToQuadEdgeMeshWithDualFilter< MeshType, SimplexMeshType, CircumDualFunctor > CircumDualFilterType;
@@ -96,8 +99,28 @@ int main( int argc, char * argv[] )
     }
   else 
     {
-    std::cerr << "Main: Bad argument for the mesh type." << std::endl;
-    return EXIT_FAILURE;
+      std::vector< MeshType::PointType > oPt( 100 );
+      unsigned int i = 0;
+      while( i < 100 )
+        {
+        oPt[i][0] = static_cast<PixelType>( rand() % 1000 - 500 );  
+        oPt[i][1] = static_cast<PixelType>( rand() % 1000 - 500 );
+          oPt[i][2] = 0; //static_cast<PixelType>( rand() % 100 - 50 );
+        myPrimalMesh->SetPoint( i, oPt[i] );
+        i++;
+        }
+      
+    }
+  
+  PrimalFilterType::Pointer myPrimalFilter = PrimalFilterType::New();
+  myPrimalFilter->SetInput( myPrimalMesh );
+  try 
+    {
+  //  myPrimalFilter->Update();
+    }
+  catch (int e) 
+    {
+    std::cerr << "Main: Error catch in PointSetToDelaunayTriangulationFilter." << std::endl;
     }
   
   //------------

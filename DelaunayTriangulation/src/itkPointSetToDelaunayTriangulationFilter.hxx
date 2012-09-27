@@ -1,18 +1,14 @@
-/*================================================================================
- *                                                                               *
- * Delaunay Triangulation Incremental Algorithm                                  *
- *                                                                               *
- *                                                                               *
- *   Implementation for ITK by Stéphane Ulysse Rigaud and Alexandre Gouaillard   *
- *   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR                           *
- *   Singapore                                                                   *
- *   http://www.ipal.cnrs.fr                                                     * 
- *                                                                               *
- *   Input: Set of points itk::PointSet                                          *
- *                                                                               *
- *   Output: Delaunay triangulated mesh itk::QuadEdgeMesh                        *
- *                                                                               *
- *===============================================================================*/
+/*==========================================================================
+ *                                                                         *
+ * Delaunay Triangulation Incremental Algorithm                            *
+ *                                                                         *
+ *   Implementation for ITK by Stéphane U. Rigaud and Alexandre Gouaillard *
+ *                                                                         *
+ *   Input: Set of points itk::PointSet                                    *
+ *                                                                         *
+ *   Output: Delaunay triangulated mesh itk::QuadEdgeMesh                  *
+ *                                                                         *
+ *=========================================================================*/
 
 #ifndef __itkPointSetToDelaunayTriangulationFilter_hxx
 #define __itkPointSetToDelaunayTriangulationFilter_hxx

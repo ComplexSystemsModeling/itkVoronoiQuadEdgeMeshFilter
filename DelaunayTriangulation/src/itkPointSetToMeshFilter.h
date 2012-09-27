@@ -1,3 +1,10 @@
+/*==========================================================================
+ *                                                                         *
+ * PointSet to Mesh Filter                                                 *
+ *                                                                         *
+ *   Implementation for ITK by Stéphane U. Rigaud and Alexandre Gouaillard *
+ *                                                                         *
+ *=========================================================================*/
 
 #ifndef __itkPointSetToMeshFilter_h
 #define __itkPointSetToMeshFilter_h

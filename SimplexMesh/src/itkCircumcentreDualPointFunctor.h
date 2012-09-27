@@ -1,13 +1,11 @@
-/*================================================================================
- *                                                                               *
- * Circumcentre Dual Point Functor                                               *
- *                                                                               *
- *   Implementation for ITK by Stéphane Ulysse Rigaud and Alexandre Gouaillard   *
- *   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR                           *
- *   Singapore                                                                   *
- *   http://www.ipal.cnrs.fr                                                     * 
- *                                                                               *
- *===============================================================================*/
+/*==================================================================
+ *                                                                 *
+ * Circumcentre Dual Point Functor                                 *
+ *                                                                 *
+ *   Implementation for ITK by Stéphane U. Rigaud, Humayun Irshad  *
+ *   and Alexandre Gouaillard                                      *
+ *                                                                 *
+ *=================================================================*/
 
 #ifndef __CircumcentreDualPointFunctor_h
 #define __CircumcentreDualPointFunctor_h

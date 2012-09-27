@@ -1,16 +1,13 @@
 /*===============================================================================
 *                                                                               *
-* Walking in a Triangulation main                                               *
+* Walking in a Triangulation Test                                               *
 *                                                                               *
 *   Based on:                                                                   *
 *   Devillers, O. and Pion, S. and Teillaud, M. "Walking in a triangulation",   *
 *   Proceedings of the seventeenth annual symposium on Computational geometry,  *
 *   pages 106-114, 2001                                                         *
 *                                                                               *
-*   Implementation for ITK by Stéphane Ulysse Rigaud and Alexandre Gouaillard   *
-*   IPAL (Image & Pervasive Access Lab) CNRS - A*STAR                           *
-*   Singapore                                                                   *
-*   http://www.ipal.cnrs.fr                                                     *
+*   Implementation for ITK by Stéphane U. Rigaud and Alexandre Gouaillard       *
 *                                                                               *
 *   Input: double       X coordinate of the destination point                   *
 *          double       Y coordinate of the destination point                   *

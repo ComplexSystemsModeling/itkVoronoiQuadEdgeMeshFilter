@@ -9,6 +9,7 @@
 
 // ITK Includes
 #include "itkVTKPolyDataWriter.h"
+#include "itkVTKPolyDataReader.h"
 #include "itkQuadEdgeMeshEulerOperatorsTestHelper.h"
 #include "itkRegularSphereMeshSource.h"
 
@@ -27,14 +28,15 @@
 int main( int argc, char * argv[] )
 {
   
-  /*if( argc != 2 )
+  if( argc != 2 )
     {
     std::cerr << "Exit wrong arguments" << std::endl;
-    std::cerr << "Usage argument - Provide a type of mesh as argument" << std::endl;
-    std::cerr << "                 \"plan\" - \"sphere\" " << std::endl;
+    std::cerr << "Usage argument - Provide a type of mesh as argument ";
+    std::cerr << "\"plan\" - \"sphere\" ";
+    std::cerr << "or provide an input mesh file." << std::endl;
       
     return EXIT_FAILURE;
-    }*/
+    }
   
   //-----------------------------------------
   //  Define all the types we will work with
@@ -67,6 +69,7 @@ int main( int argc, char * argv[] )
   // all the filters to write the result
   typedef itk::VTKPolyDataWriter<SimplexMeshType> MeshWriterType;
   typedef itk::VTKPolyDataWriter<MeshType> WriterType;
+  typedef itk::VTKPolyDataReader<MeshType> ReaderType;
   typedef itk::VTKPolyDataWriter< AdaptorType > DualMeshWriterType;
 
   //--------------------------------------------------------------
@@ -74,6 +77,7 @@ int main( int argc, char * argv[] )
   //--------------------------------------------------------------
 
   MeshType::Pointer myPrimalMesh = MeshType::New();  
+  ReaderType::Pointer meshReader = ReaderType::New();
 
   //-----------------------------------------
   // Create an input mesh to toy around with
@@ -99,28 +103,18 @@ int main( int argc, char * argv[] )
     }
   else 
     {
-      std::vector< MeshType::PointType > oPt( 100 );
-      unsigned int i = 0;
-      while( i < 100 )
+      meshReader->SetFileName( argv[1] );
+      try 
         {
-        oPt[i][0] = static_cast<PixelType>( rand() % 1000 - 500 );  
-        oPt[i][1] = static_cast<PixelType>( rand() % 1000 - 500 );
-          oPt[i][2] = 0; //static_cast<PixelType>( rand() % 100 - 50 );
-        myPrimalMesh->SetPoint( i, oPt[i] );
-        i++;
+        meshReader->Update();
+        myPrimalMesh = meshReader->GetOutput();
         }
-      
-    }
-  
-  PrimalFilterType::Pointer myPrimalFilter = PrimalFilterType::New();
-  myPrimalFilter->SetInput( myPrimalMesh );
-  try 
-    {
-  //  myPrimalFilter->Update();
-    }
-  catch (int e) 
-    {
-    std::cerr << "Main: Error catch in PointSetToDelaunayTriangulationFilter." << std::endl;
+      catch( itk::ExceptionObject & excp ) 
+        {
+        std::cerr << "Main: Exception thrown while trying to read the input." << std::endl;
+        std::cerr << excp << std::endl;
+        return EXIT_FAILURE; 
+        }
     }
   
   //------------
@@ -130,6 +124,7 @@ int main( int argc, char * argv[] )
   std::cout << "Main: Apply the Primal to Dual filter." << std::endl;
   BaryDualFilterType::Pointer myBaryDualFilter = BaryDualFilterType::New();
   myBaryDualFilter->SetInput( myPrimalMesh );
+  myBaryDualFilter->SetMakeBorders( true );
   try
     {
     myBaryDualFilter->Update( );

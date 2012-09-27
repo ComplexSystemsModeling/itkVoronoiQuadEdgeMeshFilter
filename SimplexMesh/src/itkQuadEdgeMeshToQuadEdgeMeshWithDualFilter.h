@@ -68,6 +68,9 @@ public:
       this->Modified();
     }
   }
+  
+  itkGetMacro( MakeBorders, bool );
+  itkSetMacro( MakeBorders, bool );
 
   typedef typename TInputMesh::Pointer             InputMeshPointerType;
 
@@ -94,7 +97,10 @@ public:
   typedef typename TOutputMesh::EdgeListPointerType                          EdgeListPointerType;
 
 protected:
-  QuadEdgeMeshToQuadEdgeMeshWithDualFilter() {};
+  QuadEdgeMeshToQuadEdgeMeshWithDualFilter() 
+  {
+    m_MakeBorders = false;
+  };
 
   virtual ~QuadEdgeMeshToQuadEdgeMeshWithDualFilter() {};
 
@@ -108,7 +114,7 @@ protected:
     //-------------------------------------------------------
     // First pass: dual points for 2D cells (triangles here)
     //-------------------------------------------------------
-    std::cout << "Filter: Generation of dual points: barycenter of primal cells" << std::endl;
+    std::cout << "Filter: Generation of dual points" << std::endl;
     ComputeDualPointsForAllPolygons( );
 
     //-------------------------------------------------------
@@ -146,6 +152,7 @@ private:
   
   // Functor declaration
   FunctorType m_Functor;
+  bool        m_MakeBorders;
   
   bool ComputeDualPointsForAllPolygons( )
   {
@@ -202,26 +209,32 @@ private:
       // 3. Almost always add the dual edge along the border,
       // in which case we also create the dual cell.
       // add the edge linking two new border dual points
-      if( firstTime == true )
+      if( m_MakeBorders )
         {
-        firstTime = false;
-        }
-      else
-        {
-        // NOTE ALEX: how to deal with OriginRefType in this case?
-        // use the EdgeCellContainer ID?
-        myPrimalMesh->AddDualEdge( previousPointId, currentPointId );
+        if( firstTime == true )
+          {
+          firstTime = false;
+          }
+        else
+          {
+          // NOTE ALEX: how to deal with OriginRefType in this case?
+          // use the EdgeCellContainer ID?
+          myPrimalMesh->AddDualEdge( previousPointId, currentPointId );
 
-        CreateDualCellOfBorderPoint( currentPointId, previousPointId, currentEdge );
+          CreateDualCellOfBorderPoint( currentPointId, previousPointId, currentEdge );
+          }
         }
       previousPointId = currentPointId;
       currentEdge = currentEdge->GetLnext();
       }
     while( currentEdge != firstEdge );
 
-    // NOTE ALEX: are we missing a dual edge here?
-    CreateDualCellOfBorderPoint( firstPointId, previousPointId, currentEdge );
-
+    if( m_MakeBorders )
+      {
+      // NOTE ALEX: are we missing a dual edge here?
+      CreateDualCellOfBorderPoint( firstPointId, previousPointId, currentEdge );
+      }
+    
     return true;
   }
 
@@ -314,7 +327,15 @@ private:
 
     // 1. compute dual point coordinate and push it to the container
     // using templated functor
-    PointType d_point = m_Functor( myPrimalMesh, cellIterator );
+    PointType d_point;
+    try
+      {
+      d_point = m_Functor( myPrimalMesh, cellIterator );
+      }
+    catch( int e ) 
+      {
+      itkExceptionMacro("Exception: Bad choice of Functor.");
+      }
     PointIdentifier d_point_id = myPrimalMesh->AddDualPoint( d_point );
     
     // 2. Compute the new OriginRefType and set all the QEdges

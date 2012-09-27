@@ -19,9 +19,9 @@ namespace Functor {
   template< class TInputMesh, class TOutputMesh=TInputMesh >
   class CircumcentreDualPointFunctor
   {
-
+  
   public:
-
+    
     typedef typename TInputMesh::PixelType PixelType;
     typedef typename TInputMesh::PointType PointType;
     typedef typename TInputMesh::PointIdentifier PointIdentifier;
@@ -43,14 +43,27 @@ namespace Functor {
     {
       OutputPointType d_point;
       PointIdConstIterator current= cellIterator.Value()->PointIdsBegin();
-      PointType A, B, C;
+      PointType pointTab[3];
+
+      unsigned int i = 0;
+      while( current != cellIterator.Value()->PointIdsEnd() )
+        {
+          if( i < 3 )
+            {
+            pointTab[i] = primalMesh->GetPoint( *current );
+            }
+          current++;
+          i++;
+        }
+      if( i > 3 )
+        {
+        // NOTE STEPH: is it possible to use the itkExceptionMacro ?
+        //itkExceptionMacro("Number of vertex = " << i << " , the mesh is not a triangulation.");
+        std::cerr << "itkCircumcentreDualPointFunctor" << std::endl;
+        std::cerr << "Exception: Number of vertex = " << i << " , the mesh is not a triangulation." << std::endl;
+        throw i;
+        } 
       
-      A = primalMesh->GetPoint( *current );
-      current++;
-      B = primalMesh->GetPoint( *current );
-      current++;
-      C = primalMesh->GetPoint( *current );
-       
       double xba, yba, zba, xca, yca, zca;
       double calength, balength;
       PointType crossbc;
@@ -59,7 +72,12 @@ namespace Functor {
       PointType ta, tb, tc;
       PointType ba, ca;
       PointType circa;
-
+      PointType A, B, C;
+      
+      A = pointTab[0];
+      B = pointTab[1];
+      C = pointTab[2];
+      
       /* Use coordinates relative to point `a' of the triangle. */
       for( unsigned int i = 0; i < PointDimension; i++ )
         {

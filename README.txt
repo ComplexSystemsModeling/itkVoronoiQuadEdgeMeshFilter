@@ -77,6 +77,7 @@ make
 
 http://www.itk.org/ITK/help/tutorials.html
 
+#     (Skip this step if you put the BUILD_EXAMPLES and BUILD_TESTING to OFF)
 #     Once ITK is compiled, we should verify that all went well.
 #     For that, still in the Build repository, run the command 
 

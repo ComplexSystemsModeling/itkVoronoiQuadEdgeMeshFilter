@@ -21,9 +21,6 @@
 #include "itkQuadEdgeMesh.h"
 #include "itkPointSetToMeshFilter.h"
 
-// TODO
-// - Modify dummy points coordinates to be at infinity 
-//
 // BUG
 // - segmentation fault with some particular configuration of points
 
@@ -75,7 +72,10 @@ public:
   typedef typename CellIdVectorContainerType::Pointer                            CellIdVectorContainerTypePointer;
 
   typedef std::vector< PointIdentifier >    PointIdVectorType;
-  
+
+  itkGetMacro( DummyPoints, bool );
+  itkSetMacro( DummyPoints, bool );
+
 protected:
   
   /** Generic Methods */
@@ -87,7 +87,7 @@ protected:
   /** Process Methods */
   void DeleteDummyPoints( PointIdVectorType pts );
   
-  PointIdVectorType CreateDummyPoints( PixelType limit );
+  PointIdVectorType CreateDummyPoints();
   
   bool RecursiveFlipEdgeTest( PointIdentifier pointIndex, FaceRefType cell );
   
@@ -97,6 +97,8 @@ protected:
   
 private:
   
+  bool m_DummyPoints;
+
   PointSetToDelaunayTriangulationFilter( const Self & ); // purposely not implemented
   void operator=( const Self & );                        // purposely not implemented
   

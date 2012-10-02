@@ -28,6 +28,8 @@ PointSetToDelaunayTriangulationFilter()
   this->Superclass::SetNumberOfRequiredOutputs( 1 );
   
   this->Superclass::SetNthOutput( 0, MeshType::New() );
+
+  m_DummyPoints = false;
 }
 //--------------------------------------------------------------------------------
   
@@ -76,9 +78,37 @@ DeleteDummyPoints( PointIdVectorType pts )
 template< class TInMesh >
 std::vector< typename PointSetToDelaunayTriangulationFilter< TInMesh >::PointIdentifier >
 PointSetToDelaunayTriangulationFilter< TInMesh >::
-CreateDummyPoints( PixelType   limit )
+CreateDummyPoints()
 {
   MeshPointer mesh = this->GetOutput();
+
+  PixelType xmin(  pow(10,10) );
+  PixelType ymin(  pow(10,10) );
+  PixelType xmax( -pow(10,10) );
+  PixelType ymax( -pow(10,10) );
+  PointsContainerIterator ite = mesh->GetPoints()->Begin();
+  while( ite != mesh->GetPoints()->End() )
+    {
+    if( ite.Value()[0] < xmin )
+      {
+      xmin = ite.Value()[0];
+      }
+    if( ite.Value()[0] > xmax )
+      {
+      xmax = ite.Value()[0];
+      }
+    if( ite.Value()[1] < ymin )
+      {
+      ymin = ite.Value()[1];
+      }
+    if( ite.Value()[1] > ymax )
+      {
+      ymax = ite.Value()[1];
+      }
+    ite++;
+    }
+
+  PixelType marge = ( ( abs(ymin) + abs(xmin) + xmax + ymax ) / 4 ) * 10 ;
 
   int expectedNumPts = 4;
   int expectedNumCells = 2;
@@ -87,13 +117,10 @@ CreateDummyPoints( PixelType   limit )
   std::vector< PointType > pts( 4 );
   PointIdVectorType idx(4);  
   
-  PixelType min = -limit;  
-  PixelType max =  limit;
-
-  pts[i][0] = min; pts[i][1] = min; pts[i++][2] = 0.;
-  pts[i][0] = max; pts[i][1] = min; pts[i++][2] = 0.; 
-  pts[i][0] = min; pts[i][1] = max; pts[i++][2] = 0.; 
-  pts[i][0] = max; pts[i][1] = max; pts[i++][2] = 0.;
+  pts[i][0] = xmin - marge; pts[i][1] = ymin - marge; pts[i++][2] = 0.;
+  pts[i][0] = xmax + marge; pts[i][1] = ymin - marge; pts[i++][2] = 0.; 
+  pts[i][0] = xmin - marge; pts[i][1] = ymax + marge; pts[i++][2] = 0.; 
+  pts[i][0] = xmax + marge; pts[i][1] = ymax + marge; pts[i++][2] = 0.;
 
   for( i = 0; i < expectedNumPts; i++ )
     {
@@ -294,8 +321,7 @@ DelaunayTriangulation()
   MeshPointer mesh = this->GetOutput();
       
   PointIdVectorType pts;
-  PixelType limit = pow( 10, 10 );
-  pts = this->CreateDummyPoints( limit ); 
+  pts = this->CreateDummyPoints(); 
       
   PointsContainer         *points       = mesh->GetPoints();
   PointsContainerIterator pointIterator = points->Begin();
@@ -333,8 +359,11 @@ DelaunayTriangulation()
       }
     ++pointIterator;
     }
-  this->DeleteDummyPoints( pts );
-
+  if( !m_DummyPoints )
+    {
+    this->DeleteDummyPoints( pts );
+    }
+  
   return true;
 }
 //--------------------------------------------------------------------------------

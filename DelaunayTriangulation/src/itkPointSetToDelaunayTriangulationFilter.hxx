@@ -62,7 +62,7 @@ DeleteDummyPoints( PointIdVectorType pts )
   for( unsigned int i = 0; i < pts.size(); i++ )
     {
     QEType* e;
-    while( e =  mesh->GetPoint( pts[i] ).GetEdge() )
+    while( (e = mesh->GetPoint( pts[i] ).GetEdge()) )
       {
       mesh->LightWeightDeleteEdge( e );
       }

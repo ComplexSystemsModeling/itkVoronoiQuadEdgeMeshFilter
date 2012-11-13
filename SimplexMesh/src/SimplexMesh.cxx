@@ -138,6 +138,7 @@ int main( int argc, char * argv[] )
   
   CircumDualFilterType::Pointer myCircumDualFilter = CircumDualFilterType::New();
   myCircumDualFilter->SetInput( myPrimalMesh );
+  myCircumDualFilter->SetMakeBorders( true );
   try
     {
     myCircumDualFilter->Update( );

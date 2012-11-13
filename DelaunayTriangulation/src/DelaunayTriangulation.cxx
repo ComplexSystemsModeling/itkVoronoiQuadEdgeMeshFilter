@@ -208,6 +208,7 @@ main( int argc, char* argv[] )
   MyFilter::Pointer myfilter = MyFilter::New();
  
   myfilter->SetInput( pointSet );
+  myfilter->SetDummyPoints( false );
   triangulatedMesh = myfilter->GetOutput();
   try 
     {

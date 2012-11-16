@@ -69,8 +69,8 @@ public:
     }
   }
   
-  itkGetMacro( MakeBorders, bool );
-  itkSetMacro( MakeBorders, bool );
+  itkGetMacro( Borders, unsigned int );
+  itkSetMacro( Borders, unsigned int );
 
   typedef typename TInputMesh::Pointer             InputMeshPointerType;
 
@@ -99,7 +99,7 @@ public:
 protected:
   QuadEdgeMeshToQuadEdgeMeshWithDualFilter() 
   {
-    m_MakeBorders = false;
+    m_Borders = 2;
   };
 
   virtual ~QuadEdgeMeshToQuadEdgeMeshWithDualFilter() {};
@@ -133,13 +133,17 @@ protected:
     EdgeListPointerType boundaryEdgesPointerList = boundaryEdges->Evaluate( *myPrimalMesh );
 
     // for each boundary
-    unsigned int i = 0;
-    while( !boundaryEdgesPointerList->empty() )
+    if( m_Borders == 1 || m_Borders == 2 )
       {
-      std::cout << "Filter: Boundary #" << i++ << std::endl;
-      CreateDualOfBorderPointsAndEdges( boundaryEdgesPointerList->front() );
-      boundaryEdgesPointerList->pop_front();
+      unsigned int i = 0;
+      while( !boundaryEdgesPointerList->empty() )
+        {
+        std::cout << "Filter: Boundary #" << i++ << std::endl;
+        CreateDualOfBorderPointsAndEdges( boundaryEdgesPointerList->front() );
+        boundaryEdgesPointerList->pop_front();
+        }
       }
+    
   };
 
   void PrintSelf(std::ostream & os, Indent indent) const
@@ -152,7 +156,7 @@ private:
   
   // Functor declaration
   FunctorType m_Functor;
-  bool        m_MakeBorders;
+  unsigned int m_Borders;
   
   bool ComputeDualPointsForAllPolygons( )
   {
@@ -209,7 +213,7 @@ private:
       // 3. Almost always add the dual edge along the border,
       // in which case we also create the dual cell.
       // add the edge linking two new border dual points
-      if( m_MakeBorders )
+      if( m_Borders == 2 )
         {
         if( firstTime == true )
           {
@@ -229,7 +233,7 @@ private:
       }
     while( currentEdge != firstEdge );
 
-    if( m_MakeBorders )
+    if( m_Borders )
       {
       // NOTE ALEX: are we missing a dual edge here?
       CreateDualCellOfBorderPoint( firstPointId, previousPointId, currentEdge );

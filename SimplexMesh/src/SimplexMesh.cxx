@@ -124,7 +124,7 @@ int main( int argc, char * argv[] )
   std::cout << "Main: Apply the Primal to Dual filter." << std::endl;
   BaryDualFilterType::Pointer myBaryDualFilter = BaryDualFilterType::New();
   myBaryDualFilter->SetInput( myPrimalMesh );
-  myBaryDualFilter->SetMakeBorders( true );
+  myBaryDualFilter->SetBorders( 2 );
   try
     {
     myBaryDualFilter->Update( );
@@ -138,7 +138,7 @@ int main( int argc, char * argv[] )
   
   CircumDualFilterType::Pointer myCircumDualFilter = CircumDualFilterType::New();
   myCircumDualFilter->SetInput( myPrimalMesh );
-  myCircumDualFilter->SetMakeBorders( true );
+  myCircumDualFilter->SetBorders( 2 );
   try
     {
     myCircumDualFilter->Update( );

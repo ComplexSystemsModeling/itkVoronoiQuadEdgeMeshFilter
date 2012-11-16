@@ -13,9 +13,10 @@
 #include "itkQuadEdgeMesh.h"
 #include "itkPointInCircleGeometricalPredicateFunctor.h"
 
-namespace itk {
-namespace Functor {
-
+namespace itk 
+{
+namespace Functor 
+{
   template< class TInputMesh, class TOutputMesh=TInputMesh >
   class CircumcentreDualPointFunctor
   {
@@ -37,9 +38,9 @@ namespace Functor {
     itkStaticConstMacro( PointDimension, unsigned int, TInputMesh::Traits::PointDimension );
 
     CircumcentreDualPointFunctor() {};
-    ~CircumcentreDualPointFunctor() {};
+    virtual ~CircumcentreDualPointFunctor() {};
 
-    inline OutputPointType operator() ( const TInputMesh* primalMesh, CellIterator cellIterator )
+    inline OutputPointType operator() ( const TInputMesh* primalMesh, const CellIterator cellIterator ) const
     {
       OutputPointType d_point;
       PointIdConstIterator current= cellIterator.Value()->PointIdsBegin();

@@ -12,9 +12,10 @@
 
 #include "itkQuadEdgeMesh.h"
 
-namespace itk {
-namespace Functor {
-
+namespace itk 
+{
+namespace Functor 
+{
   template< class TInputMesh, class TOutputMesh=TInputMesh >
   class BarycentreDualPointFunctor
   {
@@ -36,9 +37,9 @@ namespace Functor {
     itkStaticConstMacro( PointDimension, unsigned int, TInputMesh::Traits::PointDimension );
 
     BarycentreDualPointFunctor() {};
-    ~BarycentreDualPointFunctor() {};
+    virtual ~BarycentreDualPointFunctor() {};
 
-    inline OutputPointType operator() ( const TInputMesh* primalMesh, CellIterator cellIterator )
+    inline OutputPointType operator() ( const TInputMesh* primalMesh, const CellIterator cellIterator ) const
     {
       OutputPointType d_point;
       PointIdConstIterator current = cellIterator.Value()->PointIdsBegin();

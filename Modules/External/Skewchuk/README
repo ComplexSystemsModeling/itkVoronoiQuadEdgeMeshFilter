@@ -1,0 +1,29 @@
+General
+------
+
+This is a module for ITK: The Insight Toolkit for Segmentation and
+Registration. It is designed to work with the ITKv4 modular system and
+to be places it ITK/Modules/External.
+
+This modular contain the ThirdParty library ITKSKEWCHUK.
+It contain one C file
+- predicates.c
+That contain the implementation of algorithms for exact addition and multiplication of floating-point numbers, and predicates for robustly performing the orientation and incircle tests used in computational geometry.
+
+Getting Started
+---------------
+
+Move this module into the ITK/Modules/External folder with the Predicate module.
+Recompile your ITK and run the testes to validate its good integration.
+
+License
+-------
+
+This software is distributed under the Apache License. Please see
+LICENSE for details.
+
+
+Authors
+------
+
+Stéphane Rigaud, Bertrand Moreau, Alexandre Gouaillard.

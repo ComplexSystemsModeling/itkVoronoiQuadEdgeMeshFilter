@@ -1,13 +1,11 @@
 
-#include "itkMesh.h"
 #include <iostream>
+#include "itkMesh.h"
+#include "itkQuadEdgeMesh.h"
 
 #include "itkOrientation2DFunction.h"
 #include "itkInCircleTestFunction.h"
 #include "itkInCircleExactTestFunction.h"
-//#include "itkInTriangleTestFunction.h"
-
-#include "itkQuadEdgeMesh.h"
 
 #include <itkMatrix.h>
 #include "vnl/vnl_det.h"
@@ -32,17 +30,13 @@ bool test( double eps_x, double eps_y, bool exact )
   
   typedef itk::InCircleExactTestFunction< MeshType > InCircleExactTest;
   typedef itk::InCircleTestFunction< MeshType > InCircleTest;
-  //typedef itk::InTriangleTestFunction< MeshType > InTriangleTest;
   
   PointType mpa, mpb, mpc, mpd;
   mpa[0] = mpc[0] = mpc[1] = mpb[1] = 1.0;
   mpa[1] = mpb[0] =                   0.0;
   mpd[0] = eps_x;
   mpd[1] = eps_y;
-  
-  //--------------------------------------------------------------------------------------------
-  // Test Is in Circle
-  
+    
   bool result_1;
   typename InCircleTest::Pointer circle = InCircleTest::New();
   typename InCircleExactTest::Pointer circleExact = InCircleExactTest::New();
@@ -60,36 +54,11 @@ bool test( double eps_x, double eps_y, bool exact )
     {
     result_1 = circle->Evaluate( pointList );
     }
-  //--------------------------------------------------------------------------------------------
-  // Test Is in Triangle
-  
-  /*
-  bool result_2;
-  InTriangleTest * triangle;
-  typename MeshType::Pointer mesh = MeshType::New();
-  
-  // add points
-  mesh->SetPoint( 0, mpa );
-  mesh->SetPoint( 1, mpb );
-  mesh->SetPoint( 2, mpc );
-  
-  // add cell
-  CellAutoPointer dummyAbstractCell;
-  TriangleCellType * dummyCell = new TriangleCellType();
-  dummyAbstractCell.TakeOwnership( dummyCell ); // polymorphism
-  PointIdentifier dummyCellPoints[3] = {0,1,2};
-  dummyAbstractCell->SetPointIds( dummyCellPoints );
-  mesh->SetCell( 0, dummyAbstractCell ); // invalidate the cell
-  
-  // now this code below should be close to what the user will do
-  CellIdentifier myTriangle = 0;
-  
-  result_2 = triangle.Evaluate( mesh, myTriangle, mpd, exact );
-  */
-  return ( result_1 );// | result_2 );
+
+  return result_1;
 }
 
-int IsPointInCircle( int argc, char* argv[] )
+int PredicatesPointInCircleTest( int argc, char* argv[] )
 {
   if( argc < 4 )
     {

@@ -5,15 +5,19 @@ This is a module for ITK: The Insight Toolkit for Segmentation and
 Registration. It is designed to work with the ITKv4 modular system and
 to be places it ITK/Modules/External.
 
-This modular contain the ThirdParty library ITKSKEWCHUK.
-It contain one C file
-- predicates.c
-That contain the implementation of algorithms for exact addition and multiplication of floating-point numbers, and predicates for robustly performing the orientation and incircle tests used in computational geometry.
+This modular contain the wrapper for the ThirdParty library ITKSKEWCHUK.
+It contain three irk function class
+- itkOrientation2DFunction.h
+- itkInCircleExactFunction.h
+- itkInCircleFunction.h
+And a test program
+- IsInCircle.cxx
+That validate the good behaviour of this module.
 
 Getting Started
 ---------------
 
-Move this module into the ITK/Modules/External folder with the Predicate module.
+Move this module into the ITK/Modules/External folder.
 Recompile your ITK and run the testes to validate its good integration.
 
 License

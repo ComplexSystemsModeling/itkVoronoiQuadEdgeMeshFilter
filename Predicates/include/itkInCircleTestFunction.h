@@ -12,7 +12,7 @@ namespace itk
 
 //-------------------------------------------------------------------
 // In Circle test wrapper for ITK
-//
+//-------------------------------------------------------------------
 template
   <
   class MeshType,
@@ -76,7 +76,7 @@ public:
     det = vnl_det( M.GetVnlMatrix() ) * orientation;
     //std::cout << "Det(M): " << det << std::endl;
       
-    // NOTE STEPH: eratum - 0 means OUT, 1 means IN ?
+    // NOTE STEPH: eratum - 0 means OUT, 1 means IN ? TOBEVERIFY
     return ( det < 0 ? 1 : 0 );
     }
 

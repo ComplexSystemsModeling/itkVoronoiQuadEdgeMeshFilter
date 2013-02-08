@@ -12,7 +12,7 @@ file( READ "${MY_CURENT_DIR}/README" DOCUMENTATION )
 # define the dependencies of the include module and the tests
 itk_module(ITKPredicates
   DEPENDS
-    ITKSKEWCHUK
+    ITKSkewchuk
     ITKCommon
   TEST_DEPENDS
     ITKTestKernel

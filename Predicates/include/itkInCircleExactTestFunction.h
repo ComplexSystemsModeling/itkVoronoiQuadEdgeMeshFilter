@@ -4,14 +4,12 @@
 #include <itkFunctionBase.h>
 #include "itkOrientation2DFunction.h"
 
-//--------------------------------------------------------------------
-// Skewchuk code
-//
-//--------------------------------------------------------------------
-
 namespace itk
 {
 
+//--------------------------------------------------------------------
+// Skewchuk code
+//--------------------------------------------------------------------
 extern "C"
   {
   double incircle( double* pa, double* pb, double* pc, double* pd );
@@ -19,7 +17,7 @@ extern "C"
 
 //-------------------------------------------------------------------
 // In Circle test wrapper for ITK
-//
+//-------------------------------------------------------------------
 template
   <
   class MeshType,
@@ -73,7 +71,7 @@ public:
     double det = incircle( pa, pb, pc, pd ) * orientation;
 
     // zero, which means the point is ON the circle is considered IN
-    // NOTE STEPH: eratum - 0 means OUT, 1 means IN ?
+    // NOTE STEPH: eratum - 0 means OUT, 1 means IN ? TOBEVERIFY
     return ( det < 0 ? 1 : 0 );
     }
   

@@ -1,6 +1,0 @@
-#ifndef _skewchukDllConfig_h
-#define _skewchukDllConfig_h
-
-#cmakedefine SKEWCHUK_STATIC
-
-#endif

@@ -3,14 +3,13 @@
 
 #include <itkFunctionBase.h>
 
-//-----------------------------------------------------------------
-// Skewchuk code
-// 
-//-----------------------------------------------------------------
 
 namespace itk
 {
 
+//-----------------------------------------------------------------
+// Skewchuk code
+//-----------------------------------------------------------------
 extern "C"
   {
   double orient2d( double* pa, double* pb, double* pc );
@@ -18,7 +17,7 @@ extern "C"
 
 //----------------------------------------------------------------
 // Orientation test wrapper for ITK
-//
+//-----------------------------------------------------------------
 template
   < 
   class MeshType,
@@ -59,7 +58,7 @@ public:
     pc[1] = (double) pointList[2][1];
 
     double orientation = orient2d( pa, pb, pc ) ;
-      std::cout << "orientation 1 : " << orientation << std::endl;
+    //std::cout << "orientation 1 : " << orientation << std::endl;
     return orientation;
     }
 
